@@ -1,7 +1,7 @@
 // js/main.js
 
 // Define la URL de tu API de Flask
-const API_URL = 'http://127.0.0.1:5000';
+const API_URL = 'https://repoappdelivery.onrender.com';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Lógica para el formulario de Login (en index.html)
