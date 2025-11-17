@@ -11,10 +11,10 @@ app.use(express.json()); // Permite al servidor entender JSON
 
 // Configuración de la Base de Datos (en render)
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
     port: process.env.DB_PORT || 4000, // Añade el puerto
     ssl: {
         // Esta línea es OBLIGATORIA para TiDB Cloud y otras BDs en la nube
