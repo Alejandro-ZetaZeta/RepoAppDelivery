@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale1.0">
+    <title>App Delivery - Panel Cliente</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-lg"> <!-- Aumenté el ancho a 'lg' para más espacio -->
+        <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h1 class="text-2xl font-bold text-blue-600 mb-4">Panel del Cliente</h1>
+            <p class="text-gray-700 mb-6">Bienvenido, <span id="clientName" class="font-semibold">Cliente</span>.</p>
+            <p>Aquí podrás ver el estado de tus pedidos, tu historial y tu perfil.</p>
+            
+            <!-- ============================================= -->
+            <!-- === NUEVO PANEL DE SOLICITUD DE DELIVERY === -->
+            <!-- ============================================= -->
+            <div class="mt-6 border-t pt-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Solicitar un Delivery</h2>
+                <p class="text-sm text-gray-600 mb-4">Selecciona un motorizado disponible para tu pedido.</p>
+                
+                <!-- Contenedor para la lista de motorizados -->
+                <div id="motorizados-list" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                    <!-- Los motorizados se cargarán aquí dinámicamente -->
+                    <!-- Ejemplo de cómo se verá un item:
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-medium">Juan Rápido</span>
+                        <span class="flex items-center text-sm font-medium text-green-600">
+                            <span class="h-2 w-2 bg-green-500 rounded-full mr-2"></span>
+                            Disponible
+                        </span>
+                    </div>
+                    -->
+                </div>
+            </div>
+            <!-- === FIN DE NUEVO PANEL === -->
+
+
+            <button id="logoutButton" class="w-full mt-8 bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600">
+                Cerrar Sesión
+            </button>
+        </div>
+    </div>
+
+    <!-- No necesitamos main.js, la lógica de este panel es específica de esta página -->
+    <script>
+        
+        /**
+         * Define los estilos de Tailwind para cada estado.
+         */
+        const estadoStyles = {
+            'disponible': {
+                text: 'text-green-600',
+                bg: 'bg-green-500',
+                label: 'Disponible'
+            },
+            'ocupado': {
+                text: 'text-yellow-600',
+                bg: 'bg-yellow-500',
+                label: 'Ocupado'
+            },
+            'no disponible': {
+                text: 'text-red-600',
+                bg: 'bg-red-500',
+                label: 'No Disponible'
+            }
+        };
+
+        /**
+         * Nueva función para cargar la lista de motorizados desde la API.
+         */
+        async function cargarMotorizados() {
+            const listContainer = document.getElementById('motorizados-list');
+            if (!listContainer) return;
+
+            listContainer.innerHTML = '<p class="text-gray-500 text-center">Cargando motorizados...</p>';
+
+            try {
+                // Llamamos a la nueva ruta de nuestra API en Node.js
+                const response = await fetch('http://localhost:5000/api/motorizados');
+                
+                if (!response.ok) {
+                    throw new Error('No se pudo conectar a la API.');
+                }
+
+                const motorizados = await response.json();
+                listContainer.innerHTML = ''; // Limpiar el mensaje de "Cargando..."
+
+                if (motorizados.length === 0) {
+                    listContainer.innerHTML = '<p class="text-gray-500 text-center">No hay motorizados registrados.</p>';
+                    return;
+                }
+
+                // Creamos el HTML para cada motorizado
+                motorizados.forEach(motorizado => {
+                    const styles = estadoStyles[motorizado.estado] || estadoStyles['no disponible'];
+                    
+                    const motorizadoDiv = document.createElement('div');
+                    motorizadoDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg shadow-sm';
+                    
+                    motorizadoDiv.innerHTML = `
+                        <span class="font-medium text-gray-800">${motorizado.nombre} ${motorizado.apellido}</span>
+                        <span class="flex items-center text-sm font-medium ${styles.text}">
+                            <span class="h-2.5 w-2.5 ${styles.bg} rounded-full mr-2"></span>
+                            ${styles.label}
+                        </span>
+                    `;
+                    
+                    // Solo si está disponible, le añadimos un botón
+                    if (motorizado.estado === 'disponible') {
+                        const botonSolicitar = document.createElement('button');
+                        botonSolicitar.className = 'ml-4 px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-lg hover:bg-blue-600';
+                        botonSolicitar.textContent = 'Solicitar';
+                        botonSolicitar.onclick = () => {
+                            alert(`Solicitando servicio a ${motorizado.nombre}... (en mantenimiento)`);
+                        };
+                        motorizadoDiv.appendChild(botonSolicitar);
+                    }
+
+                    listContainer.appendChild(motorizadoDiv);
+                });
+
+            } catch (error) {
+                console.error('Error al cargar motorizados:', error);
+                listContainer.innerHTML = `<p class="text-red-500 text-center">Error al cargar la lista.</p>`;
+            }
+        }
+
+
+        // Código existente de la página
+        document.addEventListener('DOMContentLoaded', () => {
+            // Establecer el nombre del cliente
+            const userName = localStorage.getItem('userName') || 'Cliente'; 
+            document.getElementById('clientName').textContent = userName;
+
+            // Asignar evento al botón de logout
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                localStorage.removeItem('userName'); 
+                window.location.href = 'index.html'; 
+            });
+
+            // --- LLAMAR A LA NUEVA FUNCIÓN ---
+            // Cargamos los motorizados en cuanto la página esté lista
+            cargarMotorizados();
+        });
+    </script>
+</body>
+</html>

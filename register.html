@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Delivery - Registro</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="w-full max-w-md">
+        <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Registro de Cliente</h1>
+            
+            <form id="registerForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="regCedula" class="block text-sm font-medium text-gray-700">Cédula</label>
+                        <input type="text" id="regCedula" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label for="regTelefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
+                        <input type="tel" id="regTelefono" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label for="regNombre" class="block text-sm font-medium text-gray-700">Nombres</label>
+                        <input type="text" id="regNombre" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label for="regApellido" class="block text-sm font-medium text-gray-700">Apellidos</label>
+                        <input type="text" id="regApellido" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="regEmail" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                        <input type="email" id="regEmail" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="regNacimiento" class="block text-sm font-medium text-gray-700">Fecha de Nacimiento</label>
+                        <input type="date" id="regNacimiento" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="regPassword" class="block text-sm font-medium text-gray-700">Crear Contraseña</label>
+                        <input type="password" id="regPassword" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+                
+                <p id="registerError" class="text-red-500 text-sm text-center my-4 hidden"></p>
+
+                <button type="submit" class="w-full mt-6 bg-green-600 text-white p-3 rounded-lg font-semibold hover:bg-green-700 transition duration-200">
+                    Registrarse
+                </button>
+            </form>
+            
+            <p class="text-center text-sm text-gray-600 mt-6">
+                ¿Ya tienes cuenta? 
+                <a href="index.html" class="font-medium text-blue-600 hover:text-blue-500">
+                    Inicia Sesión
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal para mensajes --><div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div id="messageModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-0"></div>
+        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6 transform opacity-0 scale-95 transition-all">
+            <h3 id="modalTitle" class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                Notificación
+            </h3>
+            <div class="mt-2">
+                <p id="modalMessage" class="text-sm text-gray-500">
+                    Mensaje.
+                </p>
+            </div>
+            <div class="mt-5 sm:mt-6">
+                <button id="modalCloseButton" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/modal.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

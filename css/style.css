@@ -1,0 +1,15 @@
+/* Estilos para el body */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Estilos para el modal */
+#messageModal {
+    transition: opacity 0.3s ease;
+}
+#messageModalBackdrop {
+    transition: opacity 0.3s ease;
+}
+#messageModal .relative {
+    transition: all 0.3s ease;
+}
