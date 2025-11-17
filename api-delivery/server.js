@@ -9,12 +9,17 @@ const app = express();
 app.use(cors()); // Habilita CORS para todas las rutas
 app.use(express.json()); // Permite al servidor entender JSON
 
-// Configuración de la Base de Datos
+// Configuración de la Base de Datos (en render)
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '12345', // Contraseña vacía de XAMPP/instalación por defecto
-    database: 'delivery_app'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    port: process.env.DB_PORT || 4000, // Añade el puerto
+    ssl: {
+        // Esta línea es OBLIGATORIA para TiDB Cloud y otras BDs en la nube
+        "rejectUnauthorized": true 
+    } 
 });
 
 db.connect(err => {
@@ -113,7 +118,8 @@ app.get('/api/motorizados', (req, res) => {
 
 
 // --- 6. EJECUTAR EL SERVIDOR DE API ---
-const PORT = 5000; // El mismo puerto que usamos con Flask
+// Configuración del Puerto del Servidor (para Render)
+const PORT = process.env.PORT || 5000; // Asegúrate de tener esta línea
 app.listen(PORT, () => {
-    console.log(`Servidor API corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor API corriendo en el puerto ${PORT}`);
 });
