@@ -120,6 +120,23 @@ app.get('/api/motorizados', (req, res) => {
 // --- 6. EJECUTAR EL SERVIDOR DE API ---
 // Configuración del Puerto del Servidor (para Render)
 const PORT = process.env.PORT || 5000; // Asegúrate de tener esta línea
+// --- RUTA 'HEALTH CHECK' PARA UPTIMEROBOT ---
+// Esta ruta SÍ responde a un GET en /health
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'ok', 
+        message: 'Servidor vivo y saludable.' 
+    });
+});
+
+// --- RUTA RAÍZ (OPCIONAL, para que se vea bien) ---
+// Esto hará que tu URL principal ya no muestre "Cannot GET /"
+app.get('/', (req, res) => {
+    res.status(200).send(
+        '<h1>API de Delivery App funcionando</h1><p>Visita /health para el estado.</p>'
+    );
+});
+
 app.listen(PORT, () => {
-    console.log(`Servidor API corriendo en el puerto ${PORT}`);
+    console.log(`Servidor API corriendo en el puerto ${PORT}`);
 });
