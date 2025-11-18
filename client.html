@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App Delivery - Panel Cliente</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <link rel="stylesheet" href="css/style.css">
@@ -10,35 +10,40 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-lg"> <!-- Aumenté el ancho a 'lg' para más espacio -->
+    <div class="w-full max-w-lg">
         <div class="bg-white p-8 rounded-lg shadow-lg">
             <h1 class="text-2xl font-bold text-blue-600 mb-4">Panel del Cliente</h1>
             <p class="text-gray-700 mb-6">Bienvenido, <span id="clientName" class="font-semibold">Cliente</span>.</p>
-            <p>Aquí podrás ver el estado de tus pedidos, tu historial y tu perfil.</p>
             
             <!-- ============================================= -->
-            <!-- === NUEVO PANEL DE SOLICITUD DE DELIVERY === -->
+            <!-- === NUEVO FORMULARIO DE SOLICITUD === -->
             <!-- ============================================= -->
             <div class="mt-6 border-t pt-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Solicitar un Delivery</h2>
-                <p class="text-sm text-gray-600 mb-4">Selecciona un motorizado disponible para tu pedido.</p>
-                
-                <!-- Contenedor para la lista de motorizados -->
-                <div id="motorizados-list" class="space-y-3 max-h-60 overflow-y-auto pr-2">
-                    <!-- Los motorizados se cargarán aquí dinámicamente -->
-                    <!-- Ejemplo de cómo se verá un item:
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span class="font-medium">Juan Rápido</span>
-                        <span class="flex items-center text-sm font-medium text-green-600">
-                            <span class="h-2 w-2 bg-green-500 rounded-full mr-2"></span>
-                            Disponible
-                        </span>
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Solicitar Nuevo Servicio</h2>
+                <form id="solicitudForm">
+                    <div class="mb-4">
+                        <label for="punto_a" class="block text-sm font-medium text-gray-700">Punto de Recogida (A)</label>
+                        <input type="text" id="punto_a" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-                    -->
+                    <div class="mb-4">
+                        <label for="punto_b" class="block text-sm font-medium text-gray-700">Punto de Entrega (B)</label>
+                        <input type="text" id="punto_b" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
+                        Enviar Solicitud
+                    </button>
+                </form>
+            </div>
+            
+            <!-- ============================================= -->
+            <!-- === PANEL DE ESTADO DE SERVICIOS === -->
+            <!-- ============================================= -->
+            <div class="mt-8 border-t pt-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Estado de Mis Pedidos</h2>
+                <div id="pedidos-list" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                    <!-- Los pedidos se cargarán aquí -->
                 </div>
             </div>
-            <!-- === FIN DE NUEVO PANEL === -->
-
 
             <button id="logoutButton" class="w-full mt-8 bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600">
                 Cerrar Sesión
@@ -46,106 +51,134 @@
         </div>
     </div>
 
-    <!-- No necesitamos main.js, la lógica de este panel es específica de esta página -->
+    <!-- Modal para mensajes -->
+    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div id="messageModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-0"></div>
+        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6 transform opacity-0 scale-95 transition-all">
+            <h3 id="modalTitle" class="text-lg font-medium leading-6 text-gray-900">Notificación</h3>
+            <div class="mt-2"><p id="modalMessage" class="text-sm text-gray-500">Mensaje.</p></div>
+            <div class="mt-5 sm:mt-6">
+                <button id="modalCloseButton" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/modal.js"></script>
     <script>
-        
-        /**
-         * Define los estilos de Tailwind para cada estado.
-         */
-        const estadoStyles = {
-            'disponible': {
-                text: 'text-green-600',
-                bg: 'bg-green-500',
-                label: 'Disponible'
-            },
-            'ocupado': {
-                text: 'text-yellow-600',
-                bg: 'bg-yellow-500',
-                label: 'Ocupado'
-            },
-            'no disponible': {
-                text: 'text-red-600',
-                bg: 'bg-red-500',
-                label: 'No Disponible'
-            }
+        // Definimos la API_URL aquí también
+        const API_URL = 'https://repoappdelivery.onrender.com';
+
+        // --- ESTADOS DE SERVICIO (para estilos) ---
+        const servicioStyles = {
+            'pendiente': { text: 'text-gray-600', bg: 'bg-gray-400', label: 'Pendiente' },
+            'recogiendo': { text: 'text-blue-600', bg: 'bg-blue-500', label: 'Recogiendo' },
+            'en camino': { text: 'text-yellow-600', bg: 'bg-yellow-500', label: 'En Camino' },
+            'entregado': { text: 'text-green-600', bg: 'bg-green-500', label: 'Entregado' }
         };
 
         /**
-         * Nueva función para cargar la lista de motorizados desde la API.
+         * Cargar todos los pedidos del cliente
          */
-        async function cargarMotorizados() {
-            const listContainer = document.getElementById('motorizados-list');
+        async function cargarMisPedidos(clienteId) {
+            const listContainer = document.getElementById('pedidos-list');
             if (!listContainer) return;
-
-            listContainer.innerHTML = '<p class="text-gray-500 text-center">Cargando motorizados...</p>';
+            listContainer.innerHTML = '<p class="text-gray-500 text-center">Cargando pedidos...</p>';
 
             try {
-                // Llamamos a la nueva ruta de nuestra API en Node.js
-                const response = await fetch('https://repoappdelivery.onrender.com/api/motorizados');
+                const response = await fetch(`${API_URL}/api/servicios/cliente/${clienteId}`);
+                if (!response.ok) throw new Error('No se pudieron cargar los pedidos.');
                 
-                if (!response.ok) {
-                    throw new Error('No se pudo conectar a la API.');
-                }
+                const pedidos = await response.json();
+                listContainer.innerHTML = ''; // Limpiar
 
-                const motorizados = await response.json();
-                listContainer.innerHTML = ''; // Limpiar el mensaje de "Cargando..."
-
-                if (motorizados.length === 0) {
-                    listContainer.innerHTML = '<p class="text-gray-500 text-center">No hay motorizados registrados.</p>';
+                if (pedidos.length === 0) {
+                    listContainer.innerHTML = '<p class="text-gray-500 text-center">No tienes pedidos activos o pasados.</p>';
                     return;
                 }
 
-                // Creamos el HTML para cada motorizado
-                motorizados.forEach(motorizado => {
-                    const styles = estadoStyles[motorizado.estado] || estadoStyles['no disponible'];
-                    
-                    const motorizadoDiv = document.createElement('div');
-                    motorizadoDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg shadow-sm';
-                    
-                    motorizadoDiv.innerHTML = `
-                        <span class="font-medium text-gray-800">${motorizado.nombre} ${motorizado.apellido}</span>
-                        <span class="flex items-center text-sm font-medium ${styles.text}">
-                            <span class="h-2.5 w-2.5 ${styles.bg} rounded-full mr-2"></span>
-                            ${styles.label}
-                        </span>
-                    `;
-                    
-                    // Solo si está disponible, le añadimos un botón
-                    if (motorizado.estado === 'disponible') {
-                        const botonSolicitar = document.createElement('button');
-                        botonSolicitar.className = 'ml-4 px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-lg hover:bg-blue-600';
-                        botonSolicitar.textContent = 'Solicitar';
-                        botonSolicitar.onclick = () => {
-                            alert(`Solicitando servicio a ${motorizado.nombre}... (en mantenimiento)`);
-                        };
-                        motorizadoDiv.appendChild(botonSolicitar);
-                    }
+                pedidos.forEach(pedido => {
+                    const styles = servicioStyles[pedido.estado_servicio];
+                    const motorizado = pedido.nombre_motorizado || 'Sin asignar';
 
-                    listContainer.appendChild(motorizadoDiv);
+                    const pedidoDiv = document.createElement('div');
+                    pedidoDiv.className = 'p-3 bg-gray-50 rounded-lg shadow-sm';
+                    pedidoDiv.innerHTML = `
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium text-gray-800">Pedido #${pedido.id}</span>
+                            <span class="flex items-center text-sm font-medium ${styles.text}">
+                                <span class="h-2.5 w-2.5 ${styles.bg} rounded-full mr-2"></span>
+                                ${styles.label}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-600"><strong>De:</strong> ${pedido.punto_a}</p>
+                        <p class="text-sm text-gray-600"><strong>A:</strong> ${pedido.punto_b}</p>
+                        <p class="text-sm text-gray-500 mt-1"><strong>Motorizado:</strong> ${motorizado}</p>
+                    `;
+                    listContainer.appendChild(pedidoDiv);
                 });
 
             } catch (error) {
-                console.error('Error al cargar motorizados:', error);
-                listContainer.innerHTML = `<p class="text-red-500 text-center">Error al cargar la lista.</p>`;
+                console.error('Error al cargar pedidos:', error);
+                listContainer.innerHTML = `<p class="text-red-500 text-center">${error.message}</p>`;
             }
         }
 
-
-        // Código existente de la página
+        // --- CÓDIGO DE INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Establecer el nombre del cliente
-            const userName = localStorage.getItem('userName') || 'Cliente'; 
+            const userName = localStorage.getItem('userName') || 'Cliente';
+            const userId = localStorage.getItem('userId');
+            
+            // Si no hay ID de usuario, no podemos continuar
+            if (!userId) {
+                alert('Error: No se pudo verificar la sesión. Por favor, inicie sesión de nuevo.');
+                window.location.href = 'index.html';
+                return;
+            }
+
             document.getElementById('clientName').textContent = userName;
 
-            // Asignar evento al botón de logout
+            // Cargar los pedidos existentes
+            cargarMisPedidos(userId);
+
+            // Evento Logout
             document.getElementById('logoutButton').addEventListener('click', () => {
-                localStorage.removeItem('userName'); 
-                window.location.href = 'index.html'; 
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userId'); // Limpiar ID también
+                window.location.href = 'index.html';
             });
 
-            // --- LLAMAR A LA NUEVA FUNCIÓN ---
-            // Cargamos los motorizados en cuanto la página esté lista
-            cargarMotorizados();
+            // Evento para nuevo formulario de solicitud
+            const solicitudForm = document.getElementById('solicitudForm');
+            solicitudForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const punto_a = document.getElementById('punto_a').value;
+                const punto_b = document.getElementById('punto_b').value;
+
+                try {
+                    const response = await fetch(`${API_URL}/api/servicios`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id_cliente: userId,
+                            punto_a: punto_a,
+                            punto_b: punto_b
+                        })
+                    });
+                    
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showModal('¡Éxito!', 'Tu solicitud de servicio ha sido creada.');
+                        solicitudForm.reset();
+                        cargarMisPedidos(userId); // Recargar la lista de pedidos
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    console.error('Error al crear solicitud:', error);
+                    showModal('Error', `No se pudo crear la solicitud: ${error.message}`);
+                }
+            });
         });
     </script>
 </body>

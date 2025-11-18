@@ -8,31 +8,153 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
     <div class="w-full max-w-md">
         <div class="bg-white p-8 rounded-lg shadow-lg">
             <h1 class="text-2xl font-bold text-green-600 mb-4">Panel del Motorizado</h1>
             <p class="text-gray-700 mb-6">Bienvenido, <span id="driverName" class="font-semibold">Motorizado</span>.</p>
-            <p>Aquí verás los pedidos asignados, el mapa de entrega y tu historial de viajes.</p>
             
-            <button id="logoutButton" class="w-full mt-6 bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600">
+            <!-- ============================================= -->
+            <!-- === PANEL DE SERVICIO ASIGNADO === -->
+            <!-- ============================================= -->
+            <div id="servicio-asignado-panel" class="mt-6 border-t pt-6">
+                <!-- El contenido se carga dinámicamente aquí -->
+            </div>
+
+            <button id="logoutButton" class="w-full mt-8 bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600">
                 Cerrar Sesión
             </button>
         </div>
     </div>
+    
+    <!-- Modal para mensajes -->
+    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div id="messageModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-0"></div>
+        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6 transform opacity-0 scale-95 transition-all">
+            <h3 id="modalTitle" class="text-lg font-medium leading-6 text-gray-900">Notificación</h3>
+            <div class="mt-2"><p id="modalMessage" class="text-sm text-gray-500">Mensaje.</p></div>
+            <div class="mt-5 sm:mt-6">
+                <button id="modalCloseButton" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700">Entendido</button>
+            </div>
+        </div>
+    </div>
 
-    <script src="js/main.js"></script>
+    <script src="js/modal.js"></script>
     <script>
-        // Establecer el nombre del motorizado (ejemplo, en un caso real vendría del backend)
+        const API_URL = 'https://repoappdelivery.onrender.com';
+        let currentServiceId = null; // Variable global para guardar el ID del servicio
+        let motorizadoId = null; // Variable global para el ID del motorizado
+
+        /**
+         * Cargar el servicio activo del motorizado
+         */
+        async function cargarMiServicio() {
+            const panel = document.getElementById('servicio-asignado-panel');
+            panel.innerHTML = '<p class="text-gray-500 text-center">Buscando servicio asignado...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/servicios/motorizado/${motorizadoId}`);
+                if (!response.ok) throw new Error('No se pudo conectar a la API.');
+
+                const servicio = await response.json();
+
+                if (!servicio) {
+                    panel.innerHTML = '<p class="text-gray-500 text-center">No tienes servicios asignados en este momento.</p>';
+                    // Asegurarse de que el estado esté disponible si no hay trabajo
+                    // (Opcional, el backend ya lo hace al entregar)
+                    return;
+                }
+                
+                // Guardamos el ID del servicio
+                currentServiceId = servicio.id;
+                
+                panel.innerHTML = `
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Servicio Activo #${servicio.id}</h2>
+                    <p class="text-sm text-gray-700"><strong>Cliente:</strong> ${servicio.nombre} ${servicio.apellido}</p>
+                    <p class="text-sm text-gray-700 mt-1"><strong>Recoger en:</strong> ${servicio.punto_a}</p>
+                    <p class="text-sm text-gray-700 mt-1"><strong>Entregar en:</strong> ${servicio.punto_b}</p>
+                    
+                    <p class="text-md font-medium text-gray-900 mt-4 mb-2">Actualizar Estado:</p>
+                    <div class="space-y-2">
+                        <button data-estado="recogiendo" class="update-status-btn w-full px-4 py-2 text-sm font-medium rounded-lg ${servicio.estado_servicio === 'recogiendo' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}">
+                            Recogiendo
+                        </button>
+                        <button data-estado="en camino" class="update-status-btn w-full px-4 py-2 text-sm font-medium rounded-lg ${servicio.estado_servicio === 'en camino' ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'}">
+                            En Camino
+                        </button>
+                        <button data-estado="entregado" class="update-status-btn w-full px-4 py-2 text-sm font-medium rounded-lg ${servicio.estado_servicio === 'entregado' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'}">
+                            Entregado
+                        </button>
+                    </div>
+                `;
+                
+                // Añadir eventos a los botones de estado
+                document.querySelectorAll('.update-status-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const nuevoEstado = button.getAttribute('data-estado');
+                        actualizarEstadoServicio(nuevoEstado);
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error al cargar mi servicio:', error);
+                panel.innerHTML = `<p class="text-red-500 text-center">${error.message}</p>`;
+            }
+        }
+
+        /**
+         * Llamar a la API para actualizar el estado
+         */
+        async function actualizarEstadoServicio(nuevoEstado) {
+            if (!currentServiceId || !motorizadoId) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/servicios/actualizar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_servicio: currentServiceId,
+                        id_motorizado: motorizadoId,
+                        nuevo_estado: nuevoEstado
+                    })
+                });
+                
+                const data = await response.json();
+                if (!data.success) throw new Error(data.message);
+
+                showModal('¡Éxito!', `Estado actualizado a "${nuevoEstado}".`);
+                
+                // Recargar el panel para mostrar el nuevo estado
+                cargarMiServicio(); 
+
+            } catch (error) {
+                console.error(error);
+                showModal('Error', `No se pudo actualizar el estado: ${error.message}`);
+            }
+        }
+
+        // --- CÓDIGO DE INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
-            const userName = localStorage.getItem('userName') || 'Motorizado'; // Recuperar del localStorage
+            const userName = localStorage.getItem('userName') || 'Motorizado';
+            motorizadoId = localStorage.getItem('userId'); // Obtenemos el ID
+
+            if (!motorizadoId) {
+                alert('Error: No se pudo verificar la sesión. Por favor, inicie sesión de nuevo.');
+                window.location.href = 'index.html';
+                return;
+            }
+
             document.getElementById('driverName').textContent = userName;
 
             document.getElementById('logoutButton').addEventListener('click', () => {
-                localStorage.removeItem('userName'); // Limpiar datos de sesión
-                window.location.href = 'index.html'; // Redirigir al login
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userId'); // Limpiar ID también
+                window.location.href = 'index.html';
             });
+
+            // Cargar el servicio asignado
+            cargarMiServicio();
         });
     </script>
 </body>

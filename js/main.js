@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Almacenar el nombre de usuario para mostrar en el dashboard
                     localStorage.setItem('userName', data.name);
+                    localStorage.setItem('userId', data.userId);
                     
                     if (data.role === 'admin') {
                         redirectUrl = 'admin.html';

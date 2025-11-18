@@ -8,31 +8,229 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="bg-gray-100 min-h-screen py-12 px-4">
 
-    <div class="w-full max-w-md">
+    <div class="w-full max-w-3xl mx-auto"> <!-- Ancho más grande -->
         <div class="bg-white p-8 rounded-lg shadow-lg">
             <h1 class="text-2xl font-bold text-purple-600 mb-4">Panel de Administrador</h1>
             <p class="text-gray-700 mb-6">Bienvenido, <span id="adminName" class="font-semibold">Administrador</span>.</p>
-            <p>Acceso total: gestión de usuarios, motorizados, pedidos, finanzas y reportes.</p>
             
-            <button id="logoutButton" class="w-full mt-6 bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600">
+            <!-- ============================================= -->
+            <!-- === PANEL DE SERVICIOS PENDIENTES === -->
+            <!-- ============================================= -->
+            <div class="mt-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Servicios Pendientes por Asignar</h2>
+                <div id="servicios-pendientes-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    <!-- Los servicios pendientes se cargarán aquí -->
+                </div>
+            </div>
+
+            <button id="logoutButton" class="w-full mt-8 bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600">
                 Cerrar Sesión
             </button>
         </div>
     </div>
 
-    <script src="js/main.js"></script>
+    <!-- Modal para mensajes (usado por modal.js) -->
+    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- ... (Contenido del modal de alerta, sin cambios) ... -->
+        <div id="messageModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-0"></div>
+        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6 transform opacity-0 scale-95 transition-all">
+            <h3 id="modalTitle" class="text-lg font-medium leading-6 text-gray-900">Notificación</h3>
+            <div class="mt-2"><p id="modalMessage" class="text-sm text-gray-500">Mensaje.</p></div>
+            <div class="mt-5 sm:mt-6">
+                <button id="modalCloseButton" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- === MODAL PARA ASIGNAR MOTORIZADO === -->
+    <!-- ============================================= -->
+    <div id="assignModal" class="fixed inset-0 z-40 flex items-center justify-center p-4 hidden">
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-75"></div>
+        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-medium text-gray-900 mb-4">Asignar Motorizado</h3>
+            <p class="text-sm text-gray-600 mb-1">Servicio #<span id="assign-service-id"></span></p>
+            <p class="text-sm text-gray-600 mb-4">Cliente: <span id="assign-client-name" class="font-medium"></span></p>
+            
+            <div id="assign-motorizado-list" class="space-y-2 max-h-64 overflow-y-auto border p-3 rounded-lg">
+                <!-- Lista de motorizados para asignar -->
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <button id="assignModalCloseButton" type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/modal.js"></script> <!-- Para alertas simples -->
     <script>
-        // Establecer el nombre del administrador (ejemplo, en un caso real vendría del backend)
+        const API_URL = 'https://repoappdelivery.onrender.com';
+
+        // Estilos para el estado del motorizado (los usaremos en la lista de asignación)
+        const estadoStyles = {
+            'disponible': { text: 'text-green-600', bg: 'bg-green-500', label: 'Disponible' },
+            'ocupado': { text: 'text-yellow-600', bg: 'bg-yellow-500', label: 'Ocupado' },
+            'no disponible': { text: 'text-red-600', bg: 'bg-red-500', label: 'No Disponible' }
+        };
+
+        // --- Referencias a elementos del Modal de Asignación ---
+        const assignModal = document.getElementById('assignModal');
+        const assignModalCloseButton = document.getElementById('assignModalCloseButton');
+        const assignServiceId = document.getElementById('assign-service-id');
+        const assignClientName = document.getElementById('assign-client-name');
+        const assignMotorizadoList = document.getElementById('assign-motorizado-list');
+
+        /**
+         * Cargar servicios pendientes
+         */
+        async function cargarServiciosPendientes() {
+            const listContainer = document.getElementById('servicios-pendientes-list');
+            listContainer.innerHTML = '<p class="text-gray-500 text-center">Cargando servicios...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/servicios/pendientes`);
+                if (!response.ok) throw new Error('No se pudieron cargar los servicios.');
+                
+                const servicios = await response.json();
+                listContainer.innerHTML = '';
+
+                if (servicios.length === 0) {
+                    listContainer.innerHTML = '<p class="text-gray-500 text-center">No hay servicios pendientes por asignar.</p>';
+                    return;
+                }
+
+                servicios.forEach(servicio => {
+                    const servicioDiv = document.createElement('div');
+                    servicioDiv.className = 'p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200';
+                    servicioDiv.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-semibold text-purple-700">Servicio #${servicio.id}</p>
+                                <p class="text-sm text-gray-700">Cliente: ${servicio.nombre} ${servicio.apellido}</p>
+                                <p class="text-xs text-gray-500 mt-1">De: ${servicio.punto_a}</p>
+                                <p class="text-xs text-gray-500">A: ${servicio.punto_b}</p>
+                            </div>
+                            <button class="assign-button px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700">
+                                Asignar
+                            </button>
+                        </div>
+                    `;
+                    // Añadimos el evento de clic al botón
+                    servicioDiv.querySelector('.assign-button').addEventListener('click', () => {
+                        abrirModalAsignacion(servicio);
+                    });
+                    
+                    listContainer.appendChild(servicioDiv);
+                });
+
+            } catch (error) {
+                console.error('Error al cargar servicios:', error);
+                listContainer.innerHTML = `<p class="text-red-500 text-center">${error.message}</p>`;
+            }
+        }
+
+        /**
+         * Abrir el modal y cargar la lista de motorizados
+         */
+        async function abrirModalAsignacion(servicio) {
+            assignServiceId.textContent = servicio.id;
+            assignClientName.textContent = `${servicio.nombre} ${servicio.apellido}`;
+            assignMotorizadoList.innerHTML = '<p class="text-center">Cargando motorizados...</p>';
+            assignModal.classList.remove('hidden');
+
+            try {
+                // Usamos la ruta '/api/motorizados' que ya existía (¡asegúrate que devuelva ID!)
+                const response = await fetch(`${API_URL}/api/motorizados`);
+                if (!response.ok) throw new Error('No se pudo cargar la lista de motorizados.');
+
+                const motorizados = await response.json();
+                assignMotorizadoList.innerHTML = '';
+
+                if (motorizados.length === 0) {
+                    assignMotorizadoList.innerHTML = '<p class="text-center text-red-500">No hay motorizados registrados.</p>';
+                    return;
+                }
+
+                motorizados.forEach(motorizado => {
+                    const styles = estadoStyles[motorizado.estado];
+                    const motorizadoDiv = document.createElement('div');
+                    motorizadoDiv.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-gray-100';
+                    motorizadoDiv.innerHTML = `
+                        <div>
+                            <span class="font-medium">${motorizado.nombre} ${motorizado.apellido}</span>
+                            <span class="flex items-center text-xs ${styles.text}">
+                                <span class="h-2 w-2 ${styles.bg} rounded-full mr-1.5"></span>
+                                ${styles.label}
+                            </span>
+                        </div>
+                    `;
+                    
+                    // Solo podemos asignar a los disponibles
+                    if (motorizado.estado === 'disponible') {
+                        const botonAsignar = document.createElement('button');
+                        botonAsignar.className = 'px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600';
+                        botonAsignar.textContent = 'Asignar';
+                        botonAsignar.addEventListener('click', () => {
+                            asignarServicio(servicio.id, motorizado.id);
+                        });
+                        motorizadoDiv.appendChild(botonAsignar);
+                    }
+                    
+                    assignMotorizadoList.appendChild(motorizadoDiv);
+                });
+
+            } catch (error) {
+                console.error(error);
+                assignMotorizadoList.innerHTML = `<p class="text-center text-red-500">${error.message}</p>`;
+            }
+        }
+
+        /**
+         * Asignar el servicio (llamar a la API)
+         */
+        async function asignarServicio(id_servicio, id_motorizado) {
+            try {
+                const response = await fetch(`${API_URL}/api/servicios/asignar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_servicio, id_motorizado })
+                });
+                
+                const data = await response.json();
+                if (!data.success) throw new Error(data.message);
+
+                showModal('¡Éxito!', 'El servicio ha sido asignado correctamente.');
+                assignModal.classList.add('hidden'); // Ocultar modal de asignación
+                cargarServiciosPendientes(); // Recargar la lista de pendientes
+
+            } catch (error) {
+                console.error(error);
+                showModal('Error', `No se pudo asignar el servicio: ${error.message}`);
+            }
+        }
+
+        // --- CÓDIGO DE INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
-            const userName = localStorage.getItem('userName') || 'Administrador'; // Recuperar del localStorage
+            const userName = localStorage.getItem('userName') || 'Administrador';
             document.getElementById('adminName').textContent = userName;
 
             document.getElementById('logoutButton').addEventListener('click', () => {
-                localStorage.removeItem('userName'); // Limpiar datos de sesión
-                window.location.href = 'index.html'; // Redirigir al login
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userId'); // Limpiar ID también
+                window.location.href = 'index.html';
             });
+
+            // Cerrar modal de asignación
+            assignModalCloseButton.addEventListener('click', () => {
+                assignModal.classList.add('hidden');
+            });
+
+            // Cargar la lista de servicios al iniciar
+            cargarServiciosPendientes();
         });
     </script>
 </body>
