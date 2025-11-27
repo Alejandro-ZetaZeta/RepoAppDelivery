@@ -15,7 +15,7 @@ const db = mysql.createConnection({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    port: process.env.DB_PORT || 4000,
+    port: process.env.DB_PORT || 5000,
     ssl: { "rejectUnauthorized": true } 
 }).promise(); // <-- .promise() para usar async/await más fácil
 
