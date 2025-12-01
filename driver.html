@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App Delivery - Panel Motorizado</title>
+    <!-- SCRIPT DE SEGURIDAD: EL PORTERO -->
+    <script>
+        const userId = localStorage.getItem('userId');
+        const userRole = localStorage.getItem('userRole');
+        if (!userId || userRole !== 'motorizado') {
+            window.location.href = 'index.html';
+        }
+    </script>
+    <!-- FIN SCRIPT SEGURIDAD -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
@@ -15,9 +24,6 @@
             <h1 class="text-2xl font-bold text-green-600 mb-4">Panel del Motorizado</h1>
             <p class="text-gray-700 mb-6">Bienvenido, <span id="driverName" class="font-semibold">Motorizado</span>.</p>
             
-            <!-- ============================================= -->
-            <!-- === PANEL DE SERVICIO ASIGNADO === -->
-            <!-- ============================================= -->
             <div id="servicio-asignado-panel" class="mt-6 border-t pt-6">
                 <!-- El contenido se carga dinámicamente aquí -->
             </div>
@@ -43,12 +49,9 @@
     <script src="js/modal.js"></script>
     <script>
         const API_URL = 'https://repoappdelivery.onrender.com';
-        let currentServiceId = null; // Variable global para guardar el ID del servicio
-        let motorizadoId = null; // Variable global para el ID del motorizado
+        let currentServiceId = null;
+        let motorizadoId = null;
 
-        /**
-         * Cargar el servicio activo del motorizado
-         */
         async function cargarMiServicio() {
             const panel = document.getElementById('servicio-asignado-panel');
             panel.innerHTML = '<p class="text-gray-500 text-center">Buscando servicio asignado...</p>';
@@ -61,12 +64,9 @@
 
                 if (!servicio) {
                     panel.innerHTML = '<p class="text-gray-500 text-center">No tienes servicios asignados en este momento.</p>';
-                    // Asegurarse de que el estado esté disponible si no hay trabajo
-                    // (Opcional, el backend ya lo hace al entregar)
                     return;
                 }
                 
-                // Guardamos el ID del servicio
                 currentServiceId = servicio.id;
                 
                 panel.innerHTML = `
@@ -89,7 +89,6 @@
                     </div>
                 `;
                 
-                // Añadir eventos a los botones de estado
                 document.querySelectorAll('.update-status-btn').forEach(button => {
                     button.addEventListener('click', () => {
                         const nuevoEstado = button.getAttribute('data-estado');
@@ -103,9 +102,6 @@
             }
         }
 
-        /**
-         * Llamar a la API para actualizar el estado
-         */
         async function actualizarEstadoServicio(nuevoEstado) {
             if (!currentServiceId || !motorizadoId) return;
 
@@ -124,8 +120,6 @@
                 if (!data.success) throw new Error(data.message);
 
                 showModal('¡Éxito!', `Estado actualizado a "${nuevoEstado}".`);
-                
-                // Recargar el panel para mostrar el nuevo estado
                 cargarMiServicio(); 
 
             } catch (error) {
@@ -134,26 +128,19 @@
             }
         }
 
-        // --- CÓDIGO DE INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
             const userName = localStorage.getItem('userName') || 'Motorizado';
-            motorizadoId = localStorage.getItem('userId'); // Obtenemos el ID
-
-            if (!motorizadoId) {
-                alert('Error: No se pudo verificar la sesión. Por favor, inicie sesión de nuevo.');
-                window.location.href = 'index.html';
-                return;
-            }
+            motorizadoId = localStorage.getItem('userId');
 
             document.getElementById('driverName').textContent = userName;
 
             document.getElementById('logoutButton').addEventListener('click', () => {
                 localStorage.removeItem('userName');
-                localStorage.removeItem('userId'); // Limpiar ID también
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userRole'); // Limpiar rol
                 window.location.href = 'index.html';
             });
 
-            // Cargar el servicio asignado
             cargarMiServicio();
         });
     </script>

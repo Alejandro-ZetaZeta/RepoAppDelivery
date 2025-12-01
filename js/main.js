@@ -1,6 +1,6 @@
 // js/main.js
 
-// Define la URL de tu API de Flask
+// Define la URL de tu API
 const API_URL = 'https://repoappdelivery.onrender.com';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const userOrId = loginUserOrId.value;
             const password = loginPassword.value;
 
-            // --- INICIO DE LA LÓGICA REAL (FETCH A LA API DE FLASK) ---
+            // --- INICIO DE LA LÓGICA REAL (FETCH A LA API) ---
             
             try {
                 // Llama a la ruta /login de tu API
@@ -39,9 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Login exitoso
                     let redirectUrl = '';
                     
-                    // Almacenar el nombre de usuario para mostrar en el dashboard
+                    // --- SEGURIDAD: Guardamos TODA la identidad ---
                     localStorage.setItem('userName', data.name);
                     localStorage.setItem('userId', data.userId);
+                    localStorage.setItem('userRole', data.role); 
                     
                     if (data.role === 'admin') {
                         redirectUrl = 'admin.html';
@@ -54,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.href = redirectUrl;
 
                 } else {
-                    // Error de login (enviado desde Flask)
+                    // Error de login
                     loginError.textContent = data.message;
                     loginError.classList.remove('hidden');
                 }
@@ -87,9 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 password: document.getElementById('regPassword').value,
             };
 
-            // --- INICIO DE LA LÓGICA REAL (FETCH A LA API DE FLASK) ---
+            // --- INICIO DE LA LÓGICA REAL (FETCH A LA API) ---
             try {
-                // Llama a la ruta /register de tu API
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: {
@@ -101,20 +101,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Registro exitoso
                     if (typeof showModal === 'function') {
                         showModal('¡Registro Exitoso!', data.message + '\nAhora puedes iniciar sesión.');
                     } else {
                         alert(data.message + '\nAhora puedes iniciar sesión.');
                     }
                     
-                    // Esperar a que el usuario cierre el modal antes de redirigir
                     setTimeout(() => {
                         window.location.href = 'index.html'; 
                     }, 2000);
 
                 } else {
-                    // Error de registro (enviado desde Flask)
                     registerError.textContent = data.message;
                     registerError.classList.remove('hidden');
                 }
@@ -124,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 registerError.textContent = 'Error de conexión con el servidor API.';
                 registerError.classList.remove('hidden');
             }
-            // --- FIN DE LA LÓGICA REAL ---
         });
     }
 });
