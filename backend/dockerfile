@@ -1,0 +1,20 @@
+# Usamos una imagen ligera de Node.js 18
+FROM node:18-alpine
+
+# Directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copiamos primero los archivos de dependencias para aprovechar la caché de Docker
+COPY package*.json ./
+
+# Instalamos las dependencias
+RUN npm install
+
+# Copiamos el resto del código (server.js, etc.)
+COPY . .
+
+# Exponemos el puerto 5000 (interno de la red Docker)
+EXPOSE 5000
+
+# Comando para iniciar el servidor
+CMD ["node", "server.js"]

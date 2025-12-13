@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # --- SERVICIO 1: API (BACKEND) ---
+  api:
+    build: ./backend
+    container_name: delivery_api
+    restart: always
+    environment:
+      - PORT=5000
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_PORT=${DB_PORT}
+
+  # --- SERVICIO 2: WEB (FRONTEND + PROXY) ---
+  web:
+    build: ./frontend
+    container_name: delivery_web
+    restart: always
+    depends_on:
+      - api # Espera a que la API inicie
+    # No exponemos puertos al exterior porque el túnel accede internamente
+
+  # --- SERVICIO 3: TÚNEL GRATUITO (Cloudflare Quick Tunnel) ---
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: delivery_tunnel
+    restart: always
+    # Crea el túnel apuntando al contenedor 'web' en el puerto 80
+    command: tunnel --url http://web:80
+    depends_on:
+      - web
