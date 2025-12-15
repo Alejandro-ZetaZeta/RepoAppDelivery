@@ -1,6 +1,6 @@
 // js/main.js
 
-const API_URL = '';
+const API_URL = 'https://tugless-eryn-forlornly.ngrok-free.dev';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Lógica para el formulario de Login (en index.html)
