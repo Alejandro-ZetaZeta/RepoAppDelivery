@@ -1,6 +1,5 @@
 // js/main.js
 
-// Define la URL de tu API
 const API_URL = '';
 
 document.addEventListener('DOMContentLoaded', () => {

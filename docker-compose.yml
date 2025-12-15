@@ -25,10 +25,14 @@ services:
 
   # --- SERVICIO 3: TÚNEL GRATUITO (Cloudflare Quick Tunnel) ---
   tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: delivery_tunnel
+    image: ngrok/ngrok:latest
+    container_name: delivery_ngrok
     restart: always
-    # Crea el túnel apuntando al contenedor 'web' en el puerto 80
-    command: tunnel --url http://web:80
+    environment:
+      - NGROK_AUTHTOKEN=36st9ljso9cQe578DSO6kmRpwek_6tw2H68CLzTYLqbykfXL1
+    command:
+      -'http'
+      - "--domain=https://tugless-eryn-forlornly.ngrok-free.dev"
+      - "web:80"
     depends_on:
       - web
