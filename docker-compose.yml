@@ -14,25 +14,19 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - DB_PORT=${DB_PORT}
 
-  # --- SERVICIO 2: WEB (FRONTEND + PROXY) ---
-  web:
-    build: ./frontend
-    container_name: delivery_web
-    restart: always
-    depends_on:
-      - api # Espera a que la API inicie
-    # No exponemos puertos al exterior porque el túnel accede internamente
-
-  # --- SERVICIO 3: TÚNEL GRATUITO (Cloudflare Quick Tunnel) ---
+  # --- SERVICIO 2: TÚNEL NGROK (Apuntando a la API) ---
   tunnel:
     image: ngrok/ngrok:latest
     container_name: delivery_ngrok
     restart: always
     environment:
+      # Asegúrate de que este token sea correcto
       - NGROK_AUTHTOKEN=36st9ljso9cQe578DSO6kmRpwek_6tw2H68CLzTYLqbykfXL1
     command:
-      -"http"
-      - "--domain=https://tugless-eryn-forlornly.ngrok-free.dev"
-      - "web:80"
+      - "http"
+      # Quitamos el 'https://' del dominio, solo el host
+      - "--domain=tugless-eryn-forlornly.ngrok-free.dev"
+      # ¡IMPORTANTE! Apuntamos a la API, no a la web
+      - "api:5000"
     depends_on:
-      - web
+      - api

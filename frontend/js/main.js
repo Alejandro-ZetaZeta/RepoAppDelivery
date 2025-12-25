@@ -2,6 +2,8 @@
 
 const API_URL = 'https://tugless-eryn-forlornly.ngrok-free.dev';
 
+console.log("Conectando a API:", API_URL);
+
 document.addEventListener('DOMContentLoaded', () => {
     // Lógica para el formulario de Login (en index.html)
     const loginForm = document.getElementById('loginForm');
