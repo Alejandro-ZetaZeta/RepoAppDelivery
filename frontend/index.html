@@ -6,45 +6,42 @@
     <title>App Delivery - Iniciar Sesión</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
 </head>
-<body class="bg-blue-500 min-h-screen flex items-center justify-center">
+<body class="bg-gradient-to-br from-blue-900 via-blue-700 to-sky-500 min-h-screen flex items-center justify-center">
 
     <div class="w-full">
-        <div class="bg-blue-200 p-8 rounded-lg shadow-lg">
-            <div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-6 flex items-center justify-center text-gray-500 text-sm font-semibold">
-                
-                <img src="logoDeliveery.png" class="w-24 h-24 rounded-full" alt="Descripción de la imagen">
-
-            </div>
-            
-            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Iniciar Sesión</h1>
-            
-            <form id="loginForm">
-                <div class="mb-4">
-                    <label for="loginUserOrId" class="block text-sm font-medium text-gray-700">Usuario o Cédula</label>
-                    <input type="text" id="loginUserOrId" name="loginUserOrId" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="mb-6">
-                    <label for="loginPassword" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                    <input type="password" id="loginPassword" name="loginPassword" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                
-                <p id="loginError" class="text-red-500 text-sm text-center mb-4 hidden"></p>
-
-                <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
-                    Ingresar
-                </button>
-            </form>
-            
-            <p class="text-center text-sm text-gray-600 mt-6">
-                ¿No tienes cuenta? 
-                <a href="register.html" class="font-medium text-blue-600 hover:text-blue-500">
-                    Regístrate aquí
-                </a>
-            </p>
-        </div>
+      <div class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md mx-auto border border-gray-200 transition-transform duration-300 hover:-translate-y-2">
+    
+    <div class="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-6 flex items-center justify-center border-2 border-blue-100">
+        <img src="logoDeliveery.png" class="w-24 h-24 rounded-full object-cover" alt="Logo de App Delivery">
     </div>
+    
+    <h1 class="text-3xl font-extrabold text-center text-gray-900 mb-6 font-sans">Iniciar Sesión</h1>
+    
+    <form id="loginForm">
+        <div class="mb-5">
+            <label for="loginUserOrId" class="block text-base font-bold text-gray-800 mb-2">Usuario o Cédula</label>
+            <input type="text" id="loginUserOrId" name="loginUserOrId" required class="mt-1 p-3 w-full border-2 border-gray-400 rounded-xl focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 text-gray-900 font-medium bg-gray-50">
+        </div>
+        <div class="mb-6">
+            <label for="loginPassword" class="block text-base font-bold text-gray-800 mb-2">Contraseña</label>
+            <input type="password" id="loginPassword" name="loginPassword" required class="mt-1 p-3 w-full border-2 border-gray-400 rounded-xl focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 text-gray-900 font-medium bg-gray-50">
+        </div>
+        
+        <p id="loginError" class="text-red-700 font-bold text-sm text-center mb-4 hidden bg-red-50 p-2 rounded"></p>
+
+        <button type="submit" class="w-full bg-blue-800 text-white p-4 rounded-xl font-bold text-lg hover:bg-blue-900 transition duration-200 shadow-lg">
+            Ingresar
+        </button>
+    </form>
+    
+    <p class="text-center text-base text-gray-700 mt-8 font-medium">
+        ¿No tienes cuenta? 
+        <a href="register.html" class="font-bold text-blue-800 hover:text-blue-900 underline decoration-2 underline-offset-2">
+            Regístrate aquí
+        </a>
+    </p>
+</div>
 
     <!-- Modal para mensajes --><div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div id="messageModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-0"></div>
