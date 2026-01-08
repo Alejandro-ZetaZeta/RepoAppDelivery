@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="bg-gradient-to-br from-blue-500 via-brown-500 to-yellow-500 min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-md">
-        <div class="bg-white p-8 rounded-lg shadow-lg">
+    <div class="w-full max-w-lg">
+    <div class="bg-white p-8 rounded-3xl shadow-2xl border-4 border-purple-100 transition-transform duration-300 hover:-translate-y-2">
             <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Registro de Cliente</h1>
             
             <form id="registerForm">
@@ -48,9 +48,9 @@
                 
                 <p id="registerError" class="text-red-500 text-sm text-center my-4 hidden"></p>
 
-                <button type="submit" class="w-full mt-6 bg-green-600 text-white p-3 rounded-lg font-semibold hover:bg-green-700 transition duration-200">
-                    Registrarse
-                </button>
+                <button type="submit" class="w-full mt-6 bg-gradient-to-r from-indigo-600 to-pink-600 text-white p-4 rounded-xl font-bold shadow-lg hover:shadow-xl transform transition hover:-translate-y-1">
+    ¡Registrarme Ahora! 
+</button>
             </form>
             
             <p class="text-center text-sm text-gray-600 mt-6">
@@ -64,7 +64,7 @@
 
     <!-- Modal para mensajes --><div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div id="messageModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-0"></div>
-        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6 transform opacity-0 scale-95 transition-all">
+        <div class="relative bg-white rounded-xl bg-gray-50 focus:ring-2 focus:ring-pink-400 focus:border-transparent shadow-xl w-full max-w-sm p-6 transform opacity-0 scale-95 transition-all">
             <h3 id="modalTitle" class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
                 Notificación
             </h3>

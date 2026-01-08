@@ -16,18 +16,21 @@
     </script>
     <!-- FIN SCRIPT SEGURIDAD -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
 </head>
-<body class="bg-gray-100 min-h-screen py-12 px-4">
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-violet-800 min-h-screen py-12 px-4"></body>
 
     <div class="w-full max-w-3xl mx-auto"> 
-        <div class="bg-white p-8 rounded-lg shadow-lg">
-            <h1 class="text-2xl font-bold text-purple-600 mb-4">Panel de Administrador</h1>
-            <p class="text-gray-700 mb-6">Bienvenido, <span id="adminName" class="font-semibold">Administrador</span>.</p>
+        <div class="bg-white p-8 rounded-3xl shadow-2xl border-4 border-purple-200">
+    <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-4" style="font-family: 'Poppins', sans-serif;">
+        PANEL DE CONTROL
+    </h1>
+            <p class="text-blue-500 mb-6">Bienvenido, <span id="adminName" class="font-semibold">Administrador</span>.</p>
             
             <div class="mt-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Servicios Pendientes por Asignar</h2>
+                <h2 class="text-xl font-semibold text-blue-800 mb-4">Servicios Pendientes por Asignar</h2>
                 <div id="servicios-pendientes-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
                     <!-- Los servicios pendientes se cargarán aquí -->
                 </div>
@@ -55,14 +58,14 @@
     <div id="assignModal" class="fixed inset-0 z-40 flex items-center justify-center p-4 hidden">
         <div class="fixed inset-0 bg-gray-600 bg-opacity-75"></div>
         <div class="relative bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
-            <h3 class="text-xl font-medium text-gray-900 mb-4">Asignar Motorizado</h3>
-            <p class="text-sm text-gray-600 mb-1">Servicio #<span id="assign-service-id"></span></p>
-            <p class="text-sm text-gray-600 mb-4">Cliente: <span id="assign-client-name" class="font-medium"></span></p>
+            <h3 class="text-xl font-medium text-red-900 mb-4">Asignar Motorizado</h3>
+            <p class="text-sm text-blue-600 mb-1">Servicio #<span id="assign-service-id"></span></p>
+            <p class="text-sm text-black-600 mb-4">Cliente: <span id="assign-client-name" class="font-medium"></span></p>
             
             <div id="assign-motorizado-list" class="space-y-2 max-h-64 overflow-y-auto border p-3 rounded-lg"></div>
             
             <div class="mt-6 flex justify-end">
-                <button id="assignModalCloseButton" type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                <button id="assignModalCloseButton" type="button" class="px-4 py-2 bg-gray-200 text-black-800 rounded-lg hover:bg-red-500">
                     Cancelar
                 </button>
             </div>
