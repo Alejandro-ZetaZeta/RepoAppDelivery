@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App Delivery - Panel Cliente</title>
-    <!-- SCRIPT DE SEGURIDAD: EL PORTERO -->
     <script>
         const userId = localStorage.getItem('userId');
         const userRole = localStorage.getItem('userRole');
@@ -12,112 +11,176 @@
             window.location.href = 'index.html';
         }
     </script>
-    <!-- FIN SCRIPT SEGURIDAD -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
-<body class="bg-gradient-to-tr from-blue-600 via-white to-blue-800 min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-lg">
-        <div class="bg-white p-8 rounded-lg shadow-lg">
-            <h1 class="text-2xl font-bold text-blue-600 mb-4">Panel del Cliente</h1>
-            <p class="text-gray-700 mb-6">Bienvenido, <span id="clientName" class="font-semibold">Cliente</span>.</p>
-            
-            <div class="mt-6 border-t pt-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Solicitar Nuevo Servicio</h2>
-                <form id="solicitudForm">
-                    <div class="mb-4">
-                        <label for="punto_a" class="block text-sm font-medium text-gray-700">Punto de Recogida (A)</label>
-                        <input type="text" id="punto_a" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="mb-4">
-                        <label for="punto_b" class="block text-sm font-medium text-gray-700">Punto de Entrega (B)</label>
-                        <input type="text" id="punto_b" required class="mt-1 p-3 w-full border border-black-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
-                        Enviar Solicitud
-                    </button>
-                </form>
+<body class="min-h-screen flex items-center justify-center p-4" 
+      style="background: linear-gradient(to bottom right, #06b6d4, #2f4c8b);">
+
+    <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg border-4 border-cyan-100 relative">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-extrabold text-blue-900">Panel del Cliente</h1>
+            <div class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
+                <span id="clientName">Cliente</span>
             </div>
-            
-            <div class="mt-8 border-t pt-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Estado de Mis Pedidos</h2>
-                <div id="pedidos-list" class="space-y-3 max-h-60 overflow-y-auto pr-2">
-                    <!-- Los pedidos se cargarán aquí -->
+        </div>
+        
+        <div class="mt-6 border-t pt-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-map-marker-alt mr-2 text-cyan-500"></i> Nuevo Pedido
+            </h2>
+            <form id="solicitudForm">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Punto de Recogida</label>
+                    <input type="text" id="punto_a" required class="w-full p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 bg-gray-50 font-medium">
                 </div>
-            </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Punto de Entrega</label>
+                    <input type="text" id="punto_b" required class="w-full p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 bg-gray-50 font-medium">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-black p-4 rounded-xl font-bold shadow-lg hover:shadow-xl transform transition hover:-translate-y-1">
+                    Enviar Solicitud 🚀
+                </button>
+            </form>
+        </div>
+        
+        <div class="mt-8 border-t pt-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-history mr-2 text-blue-500"></i> Mis Pedidos
+            </h2>
+            <div id="pedidos-list" class="space-y-3 max-h-60 overflow-y-auto pr-2"></div>
+        </div>
 
-            <button id="logoutButton" class="w-full mt-8 bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600">
-                Cerrar Sesión
-            </button>
+        <button id="logoutButton" class="w-full mt-8 bg-red-50 text-red-600 p-3 rounded-xl font-bold hover:bg-red-100 transition border border-red-200">
+            Cerrar Sesión
+        </button>
+    </div>
+
+    <div id="avisoModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-70 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-0 overflow-hidden transform scale-100 transition-all animate-bounce-in">
+            <div class="bg-gradient-to-r from-pink-500 to-purple-600 p-6 text-center">
+                <i class="fas fa-bullhorn text-4xl text-white mb-2 animate-pulse"></i>
+                <h3 class="text-xl font-bold text-white" id="avisoTitulo">Aviso Importante</h3>
+            </div>
+            <div class="p-6 text-center">
+                <p class="text-gray-600 text-lg leading-relaxed font-medium" id="avisoContenido">...</p>
+                <button onclick="cerrarAviso()" class="mt-6 bg-gray-900 text-white px-6 py-2 rounded-full font-bold hover:bg-gray-800 transition shadow-lg w-full">
+                    Entendido
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Modal para mensajes -->
-    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div id="messageModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-0"></div>
-        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6 transform opacity-0 scale-95 transition-all">
-            <h3 id="modalTitle" class="text-lg font-medium leading-6 text-gray-900">Notificación</h3>
-            <div class="mt-2"><p id="modalMessage" class="text-sm text-gray-500">Mensaje.</p></div>
-            <div class="mt-5 sm:mt-6">
-                <button id="modalCloseButton" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700">Entendido</button>
-            </div>
+    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-60"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h3 id="modalTitle" class="font-bold text-lg mb-2">Notificación</h3>
+            <p id="modalMessage" class="text-gray-600 mb-4">Mensaje.</p>
+            <button id="modalCloseButton" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold">Ok</button>
         </div>
     </div>
 
-    <script src="js/modal.js"></script>
     <script>
         const API_URL = 'https://repoappdelivery.onrender.com';
 
+        // ---------------------------------------------------------
+        // LOGICA DE "RADAR" PARA EL AVISO AUTOMÁTICO
+        // ---------------------------------------------------------
+        let ultimoAvisoVisto = null;
+
+        function verificarAvisos() {
+            const avisoGuardado = localStorage.getItem('delivery_global_announcement');
+            
+            if (avisoGuardado) {
+                const aviso = JSON.parse(avisoGuardado);
+                
+                // Si el aviso está activo Y es diferente al último que cerramos...
+                if (aviso.activo && JSON.stringify(aviso) !== ultimoAvisoVisto) {
+                    document.getElementById('avisoTitulo').textContent = aviso.titulo;
+                    document.getElementById('avisoContenido').textContent = aviso.mensaje;
+                    document.getElementById('avisoModal').classList.remove('hidden');
+                }
+            }
+        }
+
+        function cerrarAviso() {
+            document.getElementById('avisoModal').classList.add('hidden');
+            // Recordamos que ya vimos este aviso para que no salga cada 3 segundos
+            const avisoGuardado = localStorage.getItem('delivery_global_announcement');
+            if(avisoGuardado) ultimoAvisoVisto = avisoGuardado; 
+        }
+
+        // 1. Detectar cambios si estás en otra pestaña
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'delivery_global_announcement') {
+                ultimoAvisoVisto = null; 
+                verificarAvisos();
+            }
+        });
+
+        // 2. RADAR: Busca avisos nuevos cada 3 segundos
+        setInterval(verificarAvisos, 3000);
+        // ---------------------------------------------------------
+
+        // --- GESTIÓN MODAL GENERAL ---
+        const messageModal = document.getElementById('messageModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCloseButton = document.getElementById('modalCloseButton');
+
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            messageModal.classList.remove('hidden');
+        }
+        modalCloseButton.addEventListener('click', () => messageModal.classList.add('hidden'));
+
+        // --- LÓGICA PRINCIPAL ---
         const servicioStyles = {
-            'pendiente': { text: 'text-gray-600', bg: 'bg-gray-400', label: 'Pendiente' },
-            'recogiendo': { text: 'text-blue-600', bg: 'bg-blue-500', label: 'Recogiendo' },
-            'en camino': { text: 'text-yellow-600', bg: 'bg-yellow-500', label: 'En Camino' },
-            'entregado': { text: 'text-green-600', bg: 'bg-green-500', label: 'Entregado' }
+            'pendiente': { text: 'text-gray-500', bg: 'bg-gray-100', label: 'Pendiente' },
+            'recogiendo': { text: 'text-blue-600', bg: 'bg-blue-100', label: 'Recogiendo' },
+            'en camino': { text: 'text-yellow-600', bg: 'bg-yellow-100', label: 'En Camino' },
+            'entregado': { text: 'text-green-600', bg: 'bg-green-100', label: 'Entregado' }
         };
 
         async function cargarMisPedidos(clienteId) {
             const listContainer = document.getElementById('pedidos-list');
-            if (!listContainer) return;
-            listContainer.innerHTML = '<p class="text-gray-500 text-center">Cargando pedidos...</p>';
+            listContainer.innerHTML = '<p class="text-gray-400 text-center text-sm py-4">Actualizando...</p>';
 
             try {
                 const response = await fetch(`${API_URL}/api/servicios/cliente/${clienteId}`);
-                if (!response.ok) throw new Error('No se pudieron cargar los pedidos.');
-                
+                if (!response.ok) throw new Error('Error al cargar pedidos.');
                 const pedidos = await response.json();
                 listContainer.innerHTML = '';
 
                 if (pedidos.length === 0) {
-                    listContainer.innerHTML = '<p class="text-gray-500 text-center">No tienes pedidos activos o pasados.</p>';
+                    listContainer.innerHTML = '<p class="text-gray-400 text-center text-sm py-4">Aún no has pedido nada.</p>';
                     return;
                 }
 
                 pedidos.forEach(pedido => {
-                    const styles = servicioStyles[pedido.estado_servicio];
-                    const motorizado = pedido.nombre_motorizado || 'Sin asignar';
-
-                    const pedidoDiv = document.createElement('div');
-                    pedidoDiv.className = 'p-3 bg-gray-50 rounded-lg shadow-sm';
-                    pedidoDiv.innerHTML = `
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="font-medium text-gray-800">Pedido #${pedido.id}</span>
-                            <span class="flex items-center text-sm font-medium ${styles.text}">
-                                <span class="h-2.5 w-2.5 ${styles.bg} rounded-full mr-2"></span>
-                                ${styles.label}
-                            </span>
+                    const styles = servicioStyles[pedido.estado_servicio] || servicioStyles['pendiente'];
+                    const div = document.createElement('div');
+                    div.className = 'p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-cyan-200 transition';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-gray-800 text-sm">#${pedido.id}</span>
+                            <span class="px-2 py-1 rounded text-xs font-bold ${styles.text} ${styles.bg}">${styles.label}</span>
                         </div>
-                        <p class="text-sm text-gray-600"><strong>De:</strong> ${pedido.punto_a}</p>
-                        <p class="text-sm text-gray-600"><strong>A:</strong> ${pedido.punto_b}</p>
-                        <p class="text-sm text-gray-500 mt-1"><strong>Motorizado:</strong> ${motorizado}</p>
+                        <div class="text-xs text-gray-600 space-y-1">
+                            <p class="truncate"><i class="fas fa-map-pin mr-1 text-red-400"></i> ${pedido.punto_a}</p>
+                            <p class="truncate"><i class="fas fa-flag-checkered mr-1 text-green-400"></i> ${pedido.punto_b}</p>
+                        </div>
                     `;
-                    listContainer.appendChild(pedidoDiv);
+                    listContainer.appendChild(div);
                 });
-
             } catch (error) {
-                console.error('Error al cargar pedidos:', error);
-                listContainer.innerHTML = `<p class="text-red-500 text-center">${error.message}</p>`;
+                listContainer.innerHTML = '<p class="text-red-400 text-center text-xs">Error de conexión</p>';
             }
         }
 
@@ -126,17 +189,16 @@
             const userId = localStorage.getItem('userId');
             
             document.getElementById('clientName').textContent = userName;
+            
             cargarMisPedidos(userId);
+            verificarAvisos();
 
             document.getElementById('logoutButton').addEventListener('click', () => {
-                localStorage.removeItem('userName');
-                localStorage.removeItem('userId');
-                localStorage.removeItem('userRole'); // Limpiar rol
+                localStorage.clear();
                 window.location.href = 'index.html';
             });
 
-            const solicitudForm = document.getElementById('solicitudForm');
-            solicitudForm.addEventListener('submit', async (e) => {
+            document.getElementById('solicitudForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const punto_a = document.getElementById('punto_a').value;
                 const punto_b = document.getElementById('punto_b').value;
@@ -145,26 +207,15 @@
                     const response = await fetch(`${API_URL}/api/servicios`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            id_cliente: userId,
-                            punto_a: punto_a,
-                            punto_b: punto_b
-                        })
+                        body: JSON.stringify({ id_cliente: userId, punto_a, punto_b })
                     });
-                    
                     const data = await response.json();
-
                     if (data.success) {
-                        showModal('¡Éxito!', 'Tu solicitud de servicio ha sido creada.');
-                        solicitudForm.reset();
+                        showModal('¡Enviado!', 'Tu solicitud ha sido recibida.');
+                        e.target.reset();
                         cargarMisPedidos(userId);
-                    } else {
-                        throw new Error(data.message);
-                    }
-                } catch (error) {
-                    console.error('Error al crear solicitud:', error);
-                    showModal('Error', `No se pudo crear la solicitud: ${error.message}`);
-                }
+                    } else { throw new Error(data.message); }
+                } catch (error) { showModal('Error', error.message); }
             });
         });
     </script>
