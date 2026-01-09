@@ -1,16 +1,15 @@
 // --- 1. IMPORTAR LIBRERÍAS ---
 const express = require('express');
-const mysql = require('mysql2/promise'); 
+const mysql = require('mysql2/promise'); // Usamos la versión 'promise'
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 
 // --- 2. CONFIGURACIÓN ---
 const app = express();
-app.use(cors()); 
+app.use(cors());
 app.use(express.json());
 
 // --- CONFIGURACIÓN DE LA BASE DE DATOS (POOL) ---
-// Conexión estable para TiDB Cloud desde tu servidor Ubuntu
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -20,19 +19,20 @@ const pool = mysql.createPool({
     ssl: { "rejectUnauthorized": true }, // Obligatorio para TiDB
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    enableKeepAlive: true, 
+    keepAliveInitialDelay: 0
 });
 
 // Prueba de conexión inicial
 pool.getConnection()
     .then(conn => {
-        console.log(' ¡Ubuntu conectado exitosamente a TiDB Cloud!');
+        console.log('✅ Conexión exitosa a TiDB Cloud!');
         conn.release();
     })
     .catch(err => {
         console.error('❌ Error fatal al conectar a la BD:', err);
     });
-
 
 // ===================================================
 // === RUTAS DE AUTENTICACIÓN ===
@@ -43,31 +43,42 @@ app.post('/register', async (req, res) => {
     try {
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
-        // Por defecto, registro público es para clientes
+        
+        // Registro público siempre es 'cliente'
         const query = "INSERT INTO users (cedula, telefono, nombre, apellido, email, fecha_nacimiento, password_hash, role) VALUES (?, ?, ?, ?, ?, ?, ?, 'cliente')";
+        
         await pool.execute(query, [cedula, telefono, nombre, apellido, email, nacimiento, password_hash]);
         res.status(201).json({ success: true, message: 'Registro exitoso.' });
     } catch (err) {
-        console.error(err);
+        console.error("Error en registro:", err);
         res.status(500).json({ success: false, message: `Error: ${err.message}` });
     }
 });
 
 app.post('/login', async (req, res) => {
     const { user: userOrId, pass: password } = req.body;
+    console.log("Intento de login para:", userOrId); // Log para depuración
+
     try {
         let query = "";
+        let params = [];
+
+        // Si es solo números, asumimos que es Cédula
         if (/^\d+$/.test(userOrId)) {
             query = "SELECT * FROM users WHERE cedula = ?";
+            params = [userOrId];
         } else {
+            // Si no, puede ser Username o Email
             query = "SELECT * FROM users WHERE username = ? OR email = ?";
+            params = [userOrId, userOrId];
         }
 
-        const [results] = await pool.execute(query, [userOrId, userOrId]);
+        const [results] = await pool.execute(query, params);
 
         if (results.length === 0) {
             return res.status(401).json({ success: false, message: 'Usuario incorrecto.' });
         }
+
         const user = results[0];
         const isMatch = await bcrypt.compare(password, user.password_hash);
 
@@ -83,24 +94,26 @@ app.post('/login', async (req, res) => {
             res.status(401).json({ success: false, message: 'Contraseña incorrecta.' });
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+        console.error("Error en login:", err);
+        res.status(500).json({ success: false, message: `Error interno: ${err.message}` });
     }
 });
 
 // ===================================================
-// === RUTAS DE ADMINISTRACIÓN (Tus nuevas funciones) ===
+// === RUTAS DE ADMINISTRACIÓN ===
 // ===================================================
 
-// Crear Motorizado (u otros roles) desde el panel Admin
+// Crear Usuario (Admin)
 app.post('/api/usuarios', async (req, res) => {
+    // NOTA: Aquí recibimos 'correo' del frontend, pero lo insertamos en 'email' de la BD
     const { nombre, apellido, cedula, telefono, fecha_nacimiento, correo, contrasena, rol, estado } = req.body;
+    
     try {
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(contrasena, salt);
-        // Usamos el correo como username
-        const username = correo;
+        const username = correo; // Usamos el correo como username por defecto
 
+        // Asegúrate de que los nombres de columnas coincidan con tu BD
         const query = `
             INSERT INTO users 
             (nombre, apellido, cedula, telefono, fecha_nacimiento, email, password_hash, role, estado, username) 
@@ -115,25 +128,24 @@ app.post('/api/usuarios', async (req, res) => {
     } catch (err) {
         console.error("Error al crear usuario:", err);
         if (err.code === 'ER_DUP_ENTRY') {
-            return res.status(400).json({ success: false, message: 'Datos duplicados (Cédula/Email).' });
+            return res.status(400).json({ success: false, message: 'El usuario ya existe (Cédula o Email duplicado).' });
         }
         res.status(500).json({ success: false, message: `Error: ${err.message}` });
     }
 });
 
-// Listar Clientes
 app.get('/api/clientes', async (req, res) => {
     try {
+        // Alias 'email as correo' para que coincida con lo que espera el frontend si es necesario
         const query = "SELECT id, nombre, apellido, cedula, telefono, email as correo FROM users WHERE role = 'cliente'";
         const [results] = await pool.query(query);
         res.status(200).json(results);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, message: 'Error al obtener clientes.' });
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
-// Listar Motorizados
 app.get('/api/motorizados', async (req, res) => {
     try {
         const query = "SELECT id, nombre, apellido, estado FROM users WHERE role = 'motorizado'";
@@ -141,12 +153,12 @@ app.get('/api/motorizados', async (req, res) => {
         res.status(200).json(results);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, message: 'Error al obtener motorizados.' });
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
 // ===================================================
-// === RUTAS DEL CICLO DE SERVICIO (PEDIDOS) ===
+// === RUTAS DEL CICLO DE SERVICIO ===
 // ===================================================
 
 app.post('/api/servicios', async (req, res) => {
@@ -199,6 +211,7 @@ app.post('/api/servicios/asignar', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         if (conn) await conn.rollback();
+        console.error(err);
         res.status(500).json({ success: false, message: err.message });
     } finally {
         if (conn) conn.release();
@@ -264,15 +277,14 @@ app.post('/api/servicios/actualizar', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         if (conn) await conn.rollback();
+        console.error(err);
         res.status(500).json({ success: false, message: err.message });
     } finally {
         if (conn) conn.release();
     }
 });
 
-// --- ARRANQUE DEL SERVIDOR ---
-const PORT = process.env.PORT || 5000;
-
+const PORT = 5000;
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok', server: 'Ubuntu' }));
 app.get('/', (req, res) => res.status(200).send('API Delivery (Ubuntu) Funcionando'));
 
