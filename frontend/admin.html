@@ -3,221 +3,517 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Delivery - Panel Administrador</title>
-    <!-- SCRIPT DE SEGURIDAD: EL PORTERO -->
+    <title>Admin Dashboard - Delivery</title>
     <script>
         const userId = localStorage.getItem('userId');
         const userRole = localStorage.getItem('userRole');
-
-        // redirigir al index para sabiditos
         if (!userId || userRole !== 'admin') {
             window.location.href = 'index.html';
         }
     </script>
-    <!-- FIN SCRIPT SEGURIDAD -->
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
-</head>
-<body class="bg-gray-100 min-h-screen py-12 px-4">
 
-    <div class="w-full max-w-3xl mx-auto"> 
-        <div class="bg-white p-8 rounded-lg shadow-lg">
-            <h1 class="text-2xl font-bold text-purple-600 mb-4">Panel de Administrador</h1>
-            <p class="text-gray-700 mb-6">Bienvenido, <span id="adminName" class="font-semibold">Administrador</span>.</p>
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #FBBF24;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex overflow-hidden">
+
+    <aside class="w-64 bg-gradient-to-b from-purple-900 to-indigo-900 text-white hidden md:flex flex-col shadow-2xl z-20">
+        <div class="p-6 flex items-center justify-center border-b border-purple-800">
+            <i class="fas fa-rocket text-3xl mr-3 text-yellow-400"></i>
+            <h1 class="text-2xl font-bold tracking-wider">DELIVERY<span class="text-yellow-400">APP</span></h1>
+        </div>
+
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center px-4 py-3 text-purple-100 hover:bg-purple-800 rounded-r-xl transition-all duration-200 text-left active">
+                <i class="fas fa-tachometer-alt w-6"></i>
+                <span class="font-medium">Panel Principal</span>
+            </button>
+            <button onclick="switchTab('motorizados')" id="nav-motorizados" class="nav-item w-full flex items-center px-4 py-3 text-purple-100 hover:bg-purple-800 rounded-r-xl transition-all duration-200 text-left">
+                <i class="fas fa-motorcycle w-6"></i>
+                <span>Motorizados</span>
+            </button>
+            <button onclick="switchTab('clientes')" id="nav-clientes" class="nav-item w-full flex items-center px-4 py-3 text-purple-100 hover:bg-purple-800 rounded-r-xl transition-all duration-200 text-left">
+                <i class="fas fa-users w-6"></i>
+                <span>Clientes</span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-purple-800">
+            <button id="logoutButton" class="flex items-center w-full px-4 py-2 text-red-300 hover:text-white hover:bg-red-600 rounded-lg transition duration-200">
+                <i class="fas fa-sign-out-alt w-6"></i>
+                <span>Cerrar Sesión</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-8 z-10">
+            <div class="flex items-center text-gray-500">
+                <i class="fas fa-bars text-xl mr-4 cursor-pointer md:hidden"></i>
+                <h2 class="text-xl font-semibold text-gray-800" id="header-title">Dashboard de Control</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs text-gray-400 uppercase font-bold">Bienvenido</p>
+                    <p class="text-sm font-bold text-purple-700" id="adminName">Admin Global</p>
+                </div>
+                <div class="h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 border border-purple-200">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8 relative">
             
-            <div class="mt-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Servicios Pendientes por Asignar</h2>
-                <div id="servicios-pendientes-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
-                    <!-- Los servicios pendientes se cargarán aquí -->
+            <div id="view-dashboard" class="view-section fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center">
+                        <div class="p-4 rounded-full bg-orange-50 text-orange-500 mr-4">
+                            <i class="fas fa-bell text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-xs font-bold uppercase">Pedidos Pendientes</p>
+                            <p class="text-3xl font-bold text-gray-800" id="stats-pendientes">0</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center">
+                        <div class="p-4 rounded-full bg-green-50 text-green-500 mr-4">
+                            <i class="fas fa-motorcycle text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-xs font-bold uppercase">Motorizados Activos</p>
+                            <p class="text-3xl font-bold text-gray-800" id="stats-motorizados">0</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center">
+                        <div class="p-4 rounded-full bg-blue-50 text-blue-500 mr-4">
+                            <i class="fas fa-users text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-xs font-bold uppercase">Total Clientes</p>
+                            <p class="text-3xl font-bold text-gray-800" id="stats-clientes">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-purple-900"><i class="fas fa-list-ul mr-2"></i>Solicitudes Recientes</h3>
+                        <button onclick="cargarServiciosPendientes()" class="text-sm text-purple-600 font-medium hover:underline">
+                            <i class="fas fa-sync-alt mr-1"></i> Actualizar
+                        </button>
+                    </div>
+                    <div class="p-6 bg-gray-50">
+                        <div id="servicios-pendientes-list" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+                    </div>
                 </div>
             </div>
 
-            <button id="logoutButton" class="w-full mt-8 bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600">
-                Cerrar Sesión
+            <div id="view-motorizados" class="view-section hidden fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+                        <h3 class="text-lg font-bold text-gray-800">Flota de Motorizados</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="abrirModalCrearMotorizado()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md transition transform hover:scale-105">
+                                <i class="fas fa-plus mr-1"></i> Nuevo Motorizado
+                            </button>
+                            <button onclick="cargarTablaMotorizados()" class="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-purple-200">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
+                                    <th class="p-4 font-semibold border-b">ID</th>
+                                    <th class="p-4 font-semibold border-b">Nombre</th>
+                                    <th class="p-4 font-semibold border-b">Estado</th>
+                                    <th class="p-4 font-semibold border-b text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-motorizados-body" class="text-sm text-gray-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-clientes" class="view-section hidden fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-gray-800">Directorio de Clientes</h3>
+                        <button onclick="cargarTablaClientes()" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-100">
+                            <i class="fas fa-sync-alt mr-1"></i> Actualizar Lista
+                        </button>
+                    </div>
+                    <div class="p-0">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="p-4 text-xs font-bold text-gray-500 uppercase border-b">ID</th>
+                                        <th class="p-4 text-xs font-bold text-gray-500 uppercase border-b">Nombre Completo</th>
+                                        <th class="p-4 text-xs font-bold text-gray-500 uppercase border-b">Cédula</th>
+                                        <th class="p-4 text-xs font-bold text-gray-500 uppercase border-b">Teléfono</th>
+                                        <th class="p-4 text-xs font-bold text-gray-500 uppercase border-b">Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-clientes-body" class="text-sm text-gray-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform scale-100 transition-all">
+            <h3 id="modalTitle" class="font-bold text-lg mb-2 text-gray-900">Notificación</h3>
+            <p id="modalMessage" class="text-gray-600 mb-6">Mensaje.</p>
+            <button id="modalCloseButton" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 transition shadow-md">
+                Entendido
             </button>
         </div>
     </div>
 
-    <!-- Modal para mensajes -->
-    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div id="messageModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-0"></div>
-        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6 transform opacity-0 scale-95 transition-all">
-            <h3 id="modalTitle" class="text-lg font-medium leading-6 text-gray-900">Notificación</h3>
-            <div class="mt-2"><p id="modalMessage" class="text-sm text-gray-500">Mensaje.</p></div>
-            <div class="mt-5 sm:mt-6">
-                <button id="modalCloseButton" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700">Entendido</button>
+    <div id="assignModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="bg-purple-700 p-4 text-white">
+                <h3 class="font-bold"><i class="fas fa-biking mr-2"></i>Asignar Motorizado</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-500 mb-2">Pedido #<span id="assign-service-id" class="font-mono"></span></p>
+                <p class="font-bold text-gray-800 mb-4" id="assign-client-name"></p>
+                <div id="assign-motorizado-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
+            </div>
+            <div class="bg-gray-50 p-3 flex justify-end border-t">
+                <button id="assignModalCloseButton" class="text-gray-500 font-bold hover:text-gray-700 px-4">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Asignación -->
-    <div id="assignModal" class="fixed inset-0 z-40 flex items-center justify-center p-4 hidden">
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-75"></div>
-        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
-            <h3 class="text-xl font-medium text-gray-900 mb-4">Asignar Motorizado</h3>
-            <p class="text-sm text-gray-600 mb-1">Servicio #<span id="assign-service-id"></span></p>
-            <p class="text-sm text-gray-600 mb-4">Cliente: <span id="assign-client-name" class="font-medium"></span></p>
-            
-            <div id="assign-motorizado-list" class="space-y-2 max-h-64 overflow-y-auto border p-3 rounded-lg"></div>
-            
-            <div class="mt-6 flex justify-end">
-                <button id="assignModalCloseButton" type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-                    Cancelar
-                </button>
+    <div id="createDriverModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-blue-600 p-4 text-white flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg"><i class="fas fa-user-plus mr-2"></i>Contratar Motorizado</h3>
+                <button onclick="cerrarModalCrearMotorizado()" class="text-blue-200 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <form id="createDriverForm" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nombre</label>
+                            <input type="text" id="newDriverNombre" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Apellido</label>
+                            <input type="text" id="newDriverApellido" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Cédula</label>
+                        <input type="text" id="newDriverCedula" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Teléfono</label>
+                        <input type="tel" id="newDriverTelefono" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Fecha de Nacimiento</label>
+                        <input type="date" id="newDriverNacimiento" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Correo Electrónico (Usuario)</label>
+                        <input type="email" id="newDriverEmail" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Contraseña</label>
+                        <input type="password" id="newDriverPassword" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    
+                    <button type="submit" id="btnSaveDriver" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg mt-4 flex justify-center items-center">
+                        <i class="fas fa-save mr-2"></i> Registrar Conductor
+                    </button>
+                </form>
             </div>
         </div>
     </div>
     
-    <script src="js/modal.js"></script>
     <script>
         const API_URL = 'https://repoappdelivery.onrender.com';
 
-        const estadoStyles = {
-            'disponible': { text: 'text-green-600', bg: 'bg-green-500', label: 'Disponible' },
-            'ocupado': { text: 'text-yellow-600', bg: 'bg-yellow-500', label: 'Ocupado' },
-            'no disponible': { text: 'text-red-600', bg: 'bg-red-500', label: 'No Disponible' }
-        };
+        // --- MODALES ---
+        const messageModal = document.getElementById('messageModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCloseButton = document.getElementById('modalCloseButton');
 
-        const assignModal = document.getElementById('assignModal');
-        const assignModalCloseButton = document.getElementById('assignModalCloseButton');
-        const assignServiceId = document.getElementById('assign-service-id');
-        const assignClientName = document.getElementById('assign-client-name');
-        const assignMotorizadoList = document.getElementById('assign-motorizado-list');
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            messageModal.classList.remove('hidden');
+        }
+        modalCloseButton.addEventListener('click', () => messageModal.classList.add('hidden'));
 
+        // --- TRANSFORMADOR ---
+        function transformarMotorizado(moto) {
+            const configEstado = {
+                'disponible': { clase: 'bg-green-100 text-green-700 border-green-200', icono: 'fas fa-check-circle', texto: 'DISPONIBLE' },
+                'ocupado': { clase: 'bg-yellow-100 text-yellow-700 border-yellow-200', icono: 'fas fa-clock', texto: 'OCUPADO' },
+                'no disponible': { clase: 'bg-red-100 text-red-700 border-red-200', icono: 'fas fa-ban', texto: 'OFF-LINE' }
+            };
+            const estadoInfo = configEstado[moto.estado] || { clase: 'bg-gray-100 text-gray-600', icono: 'fas fa-question', texto: moto.estado.toUpperCase() };
+            return {
+                idFormateado: `#${moto.id.toString().padStart(4, '0')}`,
+                nombreCompleto: `${moto.nombre} ${moto.apellido}`,
+                inicial: moto.nombre.charAt(0).toUpperCase(),
+                estado: estadoInfo,
+                raw: moto
+            };
+        }
+
+        // --- NAVEGACIÓN ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabName}`).classList.add('active');
+            
+            const titles = {'dashboard': 'Dashboard', 'motorizados': 'Gestión de Motorizados', 'clientes': 'Directorio Clientes'};
+            document.getElementById('header-title').textContent = titles[tabName];
+
+            if(tabName === 'motorizados') cargarTablaMotorizados();
+            if(tabName === 'clientes') cargarTablaClientes();
+        }
+
+        // --- CARGAR DATOS ---
         async function cargarServiciosPendientes() {
             const listContainer = document.getElementById('servicios-pendientes-list');
-            listContainer.innerHTML = '<p class="text-gray-500 text-center">Cargando servicios...</p>';
-
+            listContainer.innerHTML = '<div class="col-span-2 text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
             try {
                 const response = await fetch(`${API_URL}/api/servicios/pendientes`);
-                if (!response.ok) throw new Error('No se pudieron cargar los servicios.');
-                
                 const servicios = await response.json();
+                document.getElementById('stats-pendientes').textContent = servicios.length;
                 listContainer.innerHTML = '';
-
                 if (servicios.length === 0) {
-                    listContainer.innerHTML = '<p class="text-gray-500 text-center">No hay servicios pendientes por asignar.</p>';
+                    listContainer.innerHTML = '<div class="col-span-2 text-center py-10 bg-white border border-dashed rounded-xl text-gray-400">No hay pendientes 🎉</div>';
                     return;
                 }
-
                 servicios.forEach(servicio => {
-                    const servicioDiv = document.createElement('div');
-                    servicioDiv.className = 'p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200';
-                    servicioDiv.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="font-semibold text-purple-700">Servicio #${servicio.id}</p>
-                                <p class="text-sm text-gray-700">Cliente: ${servicio.nombre} ${servicio.apellido}</p>
-                                <p class="text-xs text-gray-500 mt-1">De: ${servicio.punto_a}</p>
-                                <p class="text-xs text-gray-500">A: ${servicio.punto_b}</p>
-                            </div>
-                            <button class="assign-button px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700">
-                                Asignar
-                            </button>
+                    const card = document.createElement('div');
+                    card.id = `card-servicio-${servicio.id}`;
+                    card.className = 'bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition relative overflow-hidden';
+                    card.innerHTML = `
+                        <div class="absolute left-0 top-0 h-full w-1 bg-orange-500"></div>
+                        <div class="flex justify-between items-start mb-3 pl-3">
+                            <div><span class="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded uppercase">Pendiente</span><h4 class="font-bold text-gray-900 mt-1">Pedido #${servicio.id}</h4></div>
+                            <button class="assign-btn w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center hover:bg-purple-600 hover:text-white transition"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div class="pl-3 space-y-1 text-sm text-gray-600">
+                            <p><i class="fas fa-user text-gray-400 w-5"></i> ${servicio.nombre} ${servicio.apellido}</p>
+                            <p><i class="fas fa-map-marker-alt text-red-400 w-5"></i> ${servicio.punto_a}</p>
+                            <p><i class="fas fa-flag text-green-400 w-5"></i> ${servicio.punto_b}</p>
                         </div>
                     `;
-                    servicioDiv.querySelector('.assign-button').addEventListener('click', () => {
-                        abrirModalAsignacion(servicio);
-                    });
-                    
-                    listContainer.appendChild(servicioDiv);
+                    card.querySelector('.assign-btn').addEventListener('click', () => abrirModalAsignacion(servicio));
+                    listContainer.appendChild(card);
                 });
-
-            } catch (error) {
-                console.error('Error al cargar servicios:', error);
-                listContainer.innerHTML = `<p class="text-red-500 text-center">${error.message}</p>`;
-            }
+            } catch (e) { console.error(e); listContainer.innerHTML = '<p class="text-red-500 text-center col-span-2">Error.</p>'; }
         }
 
-        async function abrirModalAsignacion(servicio) {
-            assignServiceId.textContent = servicio.id;
-            assignClientName.textContent = `${servicio.nombre} ${servicio.apellido}`;
-            assignMotorizadoList.innerHTML = '<p class="text-center">Cargando motorizados...</p>';
-            assignModal.classList.remove('hidden');
-
+        async function cargarTablaMotorizados() {
+            const tbody = document.getElementById('tabla-motorizados-body');
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4">Cargando...</td></tr>';
             try {
                 const response = await fetch(`${API_URL}/api/motorizados`);
-                if (!response.ok) throw new Error('No se pudo cargar la lista de motorizados.');
-
-                const motorizados = await response.json();
-                assignMotorizadoList.innerHTML = '';
-
-                if (motorizados.length === 0) {
-                    assignMotorizadoList.innerHTML = '<p class="text-center text-red-500">No hay motorizados registrados.</p>';
-                    return;
-                }
-
-                motorizados.forEach(motorizado => {
-                    const styles = estadoStyles[motorizado.estado];
-                    const motorizadoDiv = document.createElement('div');
-                    motorizadoDiv.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-gray-100';
-                    motorizadoDiv.innerHTML = `
-                        <div>
-                            <span class="font-medium">${motorizado.nombre} ${motorizado.apellido}</span>
-                            <span class="flex items-center text-xs ${styles.text}">
-                                <span class="h-2 w-2 ${styles.bg} rounded-full mr-1.5"></span>
-                                ${styles.label}
-                            </span>
-                        </div>
+                const data = await response.json();
+                document.getElementById('stats-motorizados').textContent = data.length;
+                tbody.innerHTML = '';
+                data.forEach(motoCruda => {
+                    const moto = transformarMotorizado(motoCruda);
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b hover:bg-gray-50 transition';
+                    tr.innerHTML = `
+                        <td class="p-4 font-mono text-gray-500 text-xs font-bold">${moto.idFormateado}</td>
+                        <td class="p-4"><div class="flex items-center"><div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3 text-gray-600 font-bold text-xs">${moto.inicial}</div><span class="font-bold text-gray-800">${moto.nombreCompleto}</span></div></td>
+                        <td class="p-4"><span class="px-3 py-1 rounded-full text-[10px] font-extrabold border flex items-center w-max ${moto.estado.clase}"><i class="${moto.estado.icono} mr-1.5"></i>${moto.estado.texto}</span></td>
+                        <td class="p-4 text-right"><button class="text-gray-400 hover:text-purple-600"><i class="fas fa-edit"></i></button></td>
                     `;
-                    
-                    if (motorizado.estado === 'disponible') {
-                        const botonAsignar = document.createElement('button');
-                        botonAsignar.className = 'px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600';
-                        botonAsignar.textContent = 'Asignar';
-                        botonAsignar.addEventListener('click', () => {
-                            asignarServicio(servicio.id, motorizado.id);
-                        });
-                        motorizadoDiv.appendChild(botonAsignar);
-                    }
-                    
-                    assignMotorizadoList.appendChild(motorizadoDiv);
+                    tbody.appendChild(tr);
                 });
-
-            } catch (error) {
-                console.error(error);
-                assignMotorizadoList.innerHTML = `<p class="text-center text-red-500">${error.message}</p>`;
-            }
+            } catch (error) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-red-500 p-4">Error.</td></tr>'; }
         }
 
-        async function asignarServicio(id_servicio, id_motorizado) {
+        async function cargarTablaClientes() {
+            const tbody = document.getElementById('tabla-clientes-body');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i> Cargando...</td></tr>';
             try {
-                const response = await fetch(`${API_URL}/api/servicios/asignar`, {
+                const response = await fetch(`${API_URL}/api/clientes`); 
+                const clientes = await response.json();
+                document.getElementById('stats-clientes').textContent = clientes.length;
+                tbody.innerHTML = '';
+                if (clientes.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-gray-500">No hay clientes.</td></tr>'; return; }
+                clientes.forEach(cliente => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b hover:bg-gray-50 transition';
+                    tr.innerHTML = `
+                        <td class="p-4 font-mono text-gray-500 font-bold">#${cliente.id}</td>
+                        <td class="p-4"><div class="flex items-center"><div class="h-8 w-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mr-3 font-bold text-xs">${cliente.nombre.charAt(0)}</div><span class="font-bold text-gray-800">${cliente.nombre} ${cliente.apellido}</span></div></td>
+                        <td class="p-4 text-gray-600">${cliente.cedula || 'N/A'}</td>
+                        <td class="p-4 text-gray-600">${cliente.telefono || 'N/A'}</td>
+                        <td class="p-4 text-blue-600">${cliente.correo}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500 p-4">Error.</td></tr>'; }
+        }
+
+        // --- ASIGNACIÓN ---
+        const assignModal = document.getElementById('assignModal');
+        const assignList = document.getElementById('assign-motorizado-list');
+        const assignModalCloseButton = document.getElementById('assignModalCloseButton');
+
+        async function abrirModalAsignacion(servicio) {
+            document.getElementById('assign-service-id').textContent = servicio.id;
+            document.getElementById('assign-client-name').textContent = `${servicio.nombre} ${servicio.apellido}`;
+            assignModal.classList.remove('hidden');
+            assignList.innerHTML = 'Cargando...';
+
+            const res = await fetch(`${API_URL}/api/motorizados`);
+            const data = await res.json();
+            assignList.innerHTML = '';
+            const disponibles = data.filter(m => m.estado === 'disponible');
+
+            if (disponibles.length === 0) {
+                assignList.innerHTML = '<div class="text-center py-4 text-sm text-red-500">No hay motorizados libres.</div>';
+                return;
+            }
+
+            disponibles.forEach(motoCruda => {
+                const moto = transformarMotorizado(motoCruda);
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-sm transition cursor-pointer group mb-2';
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-xs text-gray-600 mr-3">${moto.inicial}</div>
+                        <div><p class="font-bold text-sm text-gray-800">${moto.nombreCompleto}</p><span class="text-[10px] flex items-center ${moto.estado.clase.split(' ')[1]} font-bold"><i class="${moto.estado.icono} mr-1 text-[8px]"></i> ${moto.estado.texto}</span></div>
+                    </div>
+                    <button class="text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm opacity-100">ASIGNAR</button>
+                `;
+                item.addEventListener('click', async () => {
+                    try {
+                        const response = await fetch(`${API_URL}/api/servicios/asignar`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({id_servicio: servicio.id, id_motorizado: moto.raw.id})
+                        });
+                        const data = await response.json();
+                        if(data.success) {
+                            assignModal.classList.add('hidden');
+                            showModal('Éxito', 'Motorizado asignado correctamente');
+                            const tarjeta = document.getElementById(`card-servicio-${servicio.id}`);
+                            if(tarjeta) tarjeta.remove();
+                            const contador = document.getElementById('stats-pendientes');
+                            let val = parseInt(contador.textContent || '0');
+                            if(val > 0) contador.textContent = val - 1;
+                            setTimeout(cargarServiciosPendientes, 1000); 
+                        } else { showModal('Error', 'No se pudo asignar'); }
+                    } catch(e) { console.error(e); }
+                });
+                assignList.appendChild(item);
+            });
+        }
+        assignModalCloseButton.addEventListener('click', () => assignModal.classList.add('hidden'));
+
+        // --- CREAR MOTORIZADO (FIXED) ---
+        const createDriverModal = document.getElementById('createDriverModal');
+        const createDriverForm = document.getElementById('createDriverForm');
+        const btnSaveDriver = document.getElementById('btnSaveDriver');
+
+        function abrirModalCrearMotorizado() {
+            createDriverModal.classList.remove('hidden');
+        }
+        function cerrarModalCrearMotorizado() {
+            createDriverModal.classList.add('hidden');
+            createDriverForm.reset();
+        }
+
+        createDriverForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 1. Efecto Visual de "Cargando"
+            const originalText = btnSaveDriver.innerHTML;
+            btnSaveDriver.disabled = true;
+            btnSaveDriver.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
+
+            const nuevoConductor = {
+                nombre: document.getElementById('newDriverNombre').value,
+                apellido: document.getElementById('newDriverApellido').value,
+                cedula: document.getElementById('newDriverCedula').value,
+                telefono: document.getElementById('newDriverTelefono').value,
+                fecha_nacimiento: document.getElementById('newDriverNacimiento').value, // YA INCLUIDO
+                correo: document.getElementById('newDriverEmail').value,
+                contrasena: document.getElementById('newDriverPassword').value,
+                rol: 'motorizado',
+                estado: 'disponible'
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/usuarios`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_servicio, id_motorizado })
+                    body: JSON.stringify(nuevoConductor)
                 });
-                
+
                 const data = await response.json();
-                if (!data.success) throw new Error(data.message);
 
-                showModal('¡Éxito!', 'El servicio ha sido asignado correctamente.');
-                assignModal.classList.add('hidden');
-                cargarServiciosPendientes();
-
+                if (response.ok || data.success) {
+                    cerrarModalCrearMotorizado();
+                    showModal('¡Bienvenido!', 'El motorizado ha sido registrado y ya puede recibir pedidos.');
+                    cargarTablaMotorizados();
+                } else {
+                    showModal('Error', data.message || 'No se pudo registrar. Verifica los datos.');
+                }
             } catch (error) {
                 console.error(error);
-                showModal('Error', `No se pudo asignar el servicio: ${error.message}`);
+                showModal('Error de conexión', 'No se pudo conectar al servidor.');
+            } finally {
+                // 2. Restaurar botón
+                btnSaveDriver.disabled = false;
+                btnSaveDriver.innerHTML = originalText;
             }
-        }
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
-            const userName = localStorage.getItem('userName') || 'Administrador';
+            const userName = localStorage.getItem('userName') || 'Admin';
             document.getElementById('adminName').textContent = userName;
-
             document.getElementById('logoutButton').addEventListener('click', () => {
-                localStorage.removeItem('userName');
-                localStorage.removeItem('userId');
-                localStorage.removeItem('userRole'); // Limpiar rol
+                localStorage.clear();
                 window.location.href = 'index.html';
             });
-
-            assignModalCloseButton.addEventListener('click', () => {
-                assignModal.classList.add('hidden');
-            });
-
             cargarServiciosPendientes();
+            cargarTablaClientes();
+            cargarTablaMotorizados();
         });
     </script>
 </body>

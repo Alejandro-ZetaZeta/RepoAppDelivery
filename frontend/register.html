@@ -8,75 +8,66 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="bg-gradient-to-br from-blue-900 via-blue-700 to-sky-500 min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-md">
-        <div class="bg-white p-8 rounded-lg shadow-lg">
-            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Registro de Cliente</h1>
-            
-            <form id="registerForm">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="regCedula" class="block text-sm font-medium text-gray-700">Cédula</label>
-                        <input type="text" id="regCedula" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
-                    </div>
-                    <div>
-                        <label for="regTelefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
-                        <input type="tel" id="regTelefono" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
-                    </div>
-                    <div>
-                        <label for="regNombre" class="block text-sm font-medium text-gray-700">Nombres</label>
-                        <input type="text" id="regNombre" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
-                    </div>
-                    <div>
-                        <label for="regApellido" class="block text-sm font-medium text-gray-700">Apellidos</label>
-                        <input type="text" id="regApellido" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label for="regEmail" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-                        <input type="email" id="regEmail" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label for="regNacimiento" class="block text-sm font-medium text-gray-700">Fecha de Nacimiento</label>
-                        <input type="date" id="regNacimiento" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label for="regPassword" class="block text-sm font-medium text-gray-700">Crear Contraseña</label>
-                        <input type="password" id="regPassword" required class="mt-1 p-3 w-full border border-gray-300 rounded-lg">
-                    </div>
+    <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg mx-auto border border-gray-200 transition-transform duration-300 hover:-translate-y-2">
+        
+        <h1 class="text-3xl font-extrabold text-center text-gray-900 mb-8 font-sans">Crear Nueva Cuenta</h1>
+        
+        <form id="registerForm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="regCedula" class="block text-base font-bold text-gray-800 mb-2">Cédula</label>
+                    <input type="text" id="regCedula" required class="mt-1 p-3 w-full border-2 border-gray-400 rounded-xl focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 text-gray-900 font-medium bg-gray-50">
                 </div>
-                
-                <p id="registerError" class="text-red-500 text-sm text-center my-4 hidden"></p>
-
-                <button type="submit" class="w-full mt-6 bg-green-600 text-white p-3 rounded-lg font-semibold hover:bg-green-700 transition duration-200">
-                    Registrarse
-                </button>
-            </form>
+                <div>
+                    <label for="regTelefono" class="block text-base font-bold text-gray-800 mb-2">Teléfono</label>
+                    <input type="tel" id="regTelefono" required class="mt-1 p-3 w-full border-2 border-gray-400 rounded-xl focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 text-gray-900 font-medium bg-gray-50">
+                </div>
+                <div>
+                    <label for="regNombre" class="block text-base font-bold text-gray-800 mb-2">Nombres</label>
+                    <input type="text" id="regNombre" required class="mt-1 p-3 w-full border-2 border-gray-400 rounded-xl focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 text-gray-900 font-medium bg-gray-50">
+                </div>
+                <div>
+                    <label for="regApellido" class="block text-base font-bold text-gray-800 mb-2">Apellidos</label>
+                    <input type="text" id="regApellido" required class="mt-1 p-3 w-full border-2 border-gray-400 rounded-xl focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 text-gray-900 font-medium bg-gray-50">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="regEmail" class="block text-base font-bold text-gray-800 mb-2">Correo Electrónico</label>
+                    <input type="email" id="regEmail" required class="mt-1 p-3 w-full border-2 border-gray-400 rounded-xl focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 text-gray-900 font-medium bg-gray-50">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="regNacimiento" class="block text-base font-bold text-gray-800 mb-2">Fecha de Nacimiento</label>
+                    <input type="date" id="regNacimiento" required class="mt-1 p-3 w-full border-2 border-gray-400 rounded-xl focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 text-gray-900 font-medium bg-gray-50">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="regPassword" class="block text-base font-bold text-gray-800 mb-2">Crear Contraseña</label>
+                    <input type="password" id="regPassword" required class="mt-1 p-3 w-full border-2 border-gray-400 rounded-xl focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 text-gray-900 font-medium bg-gray-50">
+                </div>
+            </div>
             
-            <p class="text-center text-sm text-gray-600 mt-6">
-                ¿Ya tienes cuenta? 
-                <a href="index.html" class="font-medium text-blue-600 hover:text-blue-500">
-                    Inicia Sesión
-                </a>
-            </p>
-        </div>
+            <p id="registerError" class="text-red-700 font-bold text-sm text-center my-4 hidden bg-red-50 p-2 rounded"></p>
+
+            <button type="submit" class="w-full mt-6 bg-blue-800 text-white p-4 rounded-xl font-bold text-lg hover:bg-blue-900 transition duration-200 shadow-lg">
+                Registrarse
+            </button>
+        </form>
+        
+        <p class="text-center text-base text-gray-700 mt-8 font-medium">
+            ¿Ya tienes cuenta? 
+            <a href="index.html" class="font-bold text-blue-800 hover:text-blue-900 underline decoration-2 underline-offset-2">
+                Inicia Sesión
+            </a>
+        </p>
     </div>
 
-    <!-- Modal para mensajes --><div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div id="messageModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-0"></div>
         <div class="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6 transform opacity-0 scale-95 transition-all">
-            <h3 id="modalTitle" class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                Notificación
-            </h3>
-            <div class="mt-2">
-                <p id="modalMessage" class="text-sm text-gray-500">
-                    Mensaje.
-                </p>
-            </div>
+            <h3 id="modalTitle" class="text-lg font-medium leading-6 text-gray-900">Notificación</h3>
+            <div class="mt-2"><p id="modalMessage" class="text-sm text-gray-500">Mensaje.</p></div>
             <div class="mt-5 sm:mt-6">
-                <button id="modalCloseButton" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm">
-                    Entendido
-                </button>
+                <button id="modalCloseButton" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 sm:text-sm">Entendido</button>
             </div>
         </div>
     </div>
