@@ -261,10 +261,29 @@
     
     <script>
         // =======================================================
-        // 👇 ¡ATENCIÓN! Reemplaza esto con tu URL de Ngrok 👇
+        // 👇 URL de Ngrok 👇
         // =======================================================
         const API_URL = 'https://tugless-eryn-forlornly.ngrok-free.dev'; 
         // =======================================================
+
+        // --- FUNCIÓN DE FETCH SEGURA (Salteando advertencia de Ngrok) ---
+        async function fetchAPI(endpoint, options = {}) {
+            // Añadimos el encabezado para saltar la advertencia de Ngrok
+            const headers = {
+                'ngrok-skip-browser-warning': 'true', 
+                'Content-Type': 'application/json',
+                ...options.headers 
+            };
+
+            const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+            
+            if (!response.ok) {
+                // Si la respuesta no es OK, intentamos leer el error
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            
+            return await response.json();
+        }
 
         // --- MODALES ---
         const messageModal = document.getElementById('messageModal');
@@ -310,20 +329,12 @@
             if(tabName === 'clientes') cargarTablaClientes();
         }
 
-        // --- CARGAR DATOS ---
+        // --- CARGAR DATOS (Usando la nueva función fetchAPI) ---
         async function cargarServiciosPendientes() {
             const listContainer = document.getElementById('servicios-pendientes-list');
             listContainer.innerHTML = '<div class="col-span-2 text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
             try {
-                const response = await fetch(`${API_URL}/api/servicios/pendientes`);
-                
-                // Verificar si la respuesta es exitosa
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-
-                // Intentar parsear JSON
-                const servicios = await response.json();
+                const servicios = await fetchAPI('/api/servicios/pendientes');
                 
                 document.getElementById('stats-pendientes').textContent = servicios.length;
                 listContainer.innerHTML = '';
@@ -360,11 +371,8 @@
             const tbody = document.getElementById('tabla-motorizados-body');
             tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4">Cargando...</td></tr>';
             try {
-                const response = await fetch(`${API_URL}/api/motorizados`);
+                const data = await fetchAPI('/api/motorizados');
                 
-                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-                
-                const data = await response.json();
                 document.getElementById('stats-motorizados').textContent = data.length;
                 tbody.innerHTML = '';
                 data.forEach(motoCruda => {
@@ -389,11 +397,8 @@
             const tbody = document.getElementById('tabla-clientes-body');
             tbody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i> Cargando...</td></tr>';
             try {
-                const response = await fetch(`${API_URL}/api/clientes`); 
+                const clientes = await fetchAPI('/api/clientes'); 
                 
-                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-
-                const clientes = await response.json();
                 document.getElementById('stats-clientes').textContent = clientes.length;
                 tbody.innerHTML = '';
                 if (clientes.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-gray-500">No hay clientes.</td></tr>'; return; }
@@ -427,10 +432,8 @@
             assignList.innerHTML = 'Cargando...';
 
             try {
-                const res = await fetch(`${API_URL}/api/motorizados`);
-                if (!res.ok) throw new Error("Error obteniendo motorizados");
+                const data = await fetchAPI('/api/motorizados');
                 
-                const data = await res.json();
                 assignList.innerHTML = '';
                 const disponibles = data.filter(m => m.estado === 'disponible');
 
@@ -452,12 +455,11 @@
                     `;
                     item.addEventListener('click', async () => {
                         try {
-                            const response = await fetch(`${API_URL}/api/servicios/asignar`, {
+                            const data = await fetchAPI('/api/servicios/asignar', {
                                 method: 'POST',
-                                headers: {'Content-Type': 'application/json'},
                                 body: JSON.stringify({id_servicio: servicio.id, id_motorizado: moto.raw.id})
                             });
-                            const data = await response.json();
+                            
                             if(data.success) {
                                 assignModal.classList.add('hidden');
                                 showModal('Éxito', 'Motorizado asignado correctamente');
@@ -513,15 +515,12 @@
             };
 
             try {
-                const response = await fetch(`${API_URL}/api/usuarios`, {
+                const data = await fetchAPI('/api/usuarios', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(nuevoConductor)
                 });
 
-                const data = await response.json();
-
-                if (response.ok || data.success) {
+                if (data.success) {
                     cerrarModalCrearMotorizado();
                     showModal('¡Bienvenido!', 'El motorizado ha sido registrado y ya puede recibir pedidos.');
                     cargarTablaMotorizados();
