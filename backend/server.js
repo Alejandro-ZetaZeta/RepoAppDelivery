@@ -1,5 +1,5 @@
 const express = require('express');
-const mysql = require('mysql2/promise'); // Versión promesa
+const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 
@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// CONFIGURACIÓN ROBUSTA DE BASE DE DATOS (POOL)
+// CONFIGURACIÓN DE BASE DE DATOS (POOL)
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -28,7 +28,9 @@ pool.getConnection()
     })
     .catch(err => console.error('Error BD:', err));
 
-// --- RUTAS DE AUTH ---
+// ===================================================
+// === RUTAS DE AUTH (Públicas) ===
+// ===================================================
 
 app.post('/register', async (req, res) => {
     const { cedula, telefono, nombre, apellido, email, nacimiento, password } = req.body;
@@ -72,6 +74,52 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// ===================================================
+// === NUEVAS RUTAS DE GESTIÓN (ADMIN) ===
+// ===================================================
+
+// 1. CREAR MOTORIZADO (O CUALQUIER USUARIO INTERNO)
+app.post('/api/usuarios', async (req, res) => {
+    // Recibimos los datos del formulario del admin
+    const { nombre, apellido, cedula, telefono, fecha_nacimiento, correo, contrasena, rol, estado } = req.body;
+    
+    try {
+        // Hashear la contraseña
+        const salt = await bcrypt.genSalt(10);
+        const password_hash = await bcrypt.hash(contrasena, salt);
+        
+        // Insertar usuario con el rol y estado específicos (ej. motorizado/disponible)
+        const query = `
+            INSERT INTO users 
+            (nombre, apellido, cedula, telefono, fecha_nacimiento, email, password_hash, role, estado, username) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        
+        // Usamos el correo como username también para facilitar el login
+        await pool.execute(query, [
+            nombre, apellido, cedula, telefono, fecha_nacimiento, correo, password_hash, rol, estado, correo
+        ]);
+
+        res.status(201).json({ success: true, message: 'Usuario creado exitosamente.' });
+    } catch (err) {
+        console.error("Error al crear usuario:", err);
+        res.status(500).json({ success: false, message: `Error al crear: ${err.message}` });
+    }
+});
+
+// 2. OBTENER LISTA DE CLIENTES
+app.get('/api/clientes', async (req, res) => {
+    try {
+        // Seleccionamos solo los clientes para la tabla del admin
+        const query = "SELECT id, nombre, apellido, cedula, telefono, email as correo FROM users WHERE role = 'cliente'";
+        const [results] = await pool.query(query);
+        res.status(200).json(results);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Error al obtener clientes.' });
+    }
+});
+
 app.get('/api/motorizados', async (req, res) => {
     try {
         const [results] = await pool.query("SELECT id, nombre, apellido, estado FROM users WHERE role = 'motorizado'");
@@ -79,7 +127,9 @@ app.get('/api/motorizados', async (req, res) => {
     } catch (err) { res.status(500).json({error: err.message}); }
 });
 
-// --- RUTAS DE SERVICIOS ---
+// ===================================================
+// === RUTAS DEL CICLO DE SERVICIO ===
+// ===================================================
 
 app.post('/api/servicios', async (req, res) => {
     const { id_cliente, punto_a, punto_b } = req.body;
@@ -156,5 +206,5 @@ app.post('/api/servicios/actualizar', async (req, res) => {
     } finally { if (conn) conn.release(); }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`API lista en puerto ${PORT}`));
