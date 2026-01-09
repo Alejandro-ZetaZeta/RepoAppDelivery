@@ -260,7 +260,11 @@
     </div>
     
     <script>
-        const API_URL = 'https://tugless-eryn-forlornly.ngrok-free.dev';
+        // =======================================================
+        // 👇 ¡ATENCIÓN! Reemplaza esto con tu URL de Ngrok 👇
+        // =======================================================
+        const API_URL = 'https://tugless-eryn-forlornly.ngrok-free.dev'; 
+        // =======================================================
 
         // --- MODALES ---
         const messageModal = document.getElementById('messageModal');
@@ -312,7 +316,15 @@
             listContainer.innerHTML = '<div class="col-span-2 text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
             try {
                 const response = await fetch(`${API_URL}/api/servicios/pendientes`);
+                
+                // Verificar si la respuesta es exitosa
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                // Intentar parsear JSON
                 const servicios = await response.json();
+                
                 document.getElementById('stats-pendientes').textContent = servicios.length;
                 listContainer.innerHTML = '';
                 if (servicios.length === 0) {
@@ -338,7 +350,10 @@
                     card.querySelector('.assign-btn').addEventListener('click', () => abrirModalAsignacion(servicio));
                     listContainer.appendChild(card);
                 });
-            } catch (e) { console.error(e); listContainer.innerHTML = '<p class="text-red-500 text-center col-span-2">Error.</p>'; }
+            } catch (e) { 
+                console.error("Error al cargar servicios pendientes:", e); 
+                listContainer.innerHTML = '<p class="text-red-500 text-center col-span-2">Error al cargar datos.</p>'; 
+            }
         }
 
         async function cargarTablaMotorizados() {
@@ -346,6 +361,9 @@
             tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4">Cargando...</td></tr>';
             try {
                 const response = await fetch(`${API_URL}/api/motorizados`);
+                
+                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                
                 const data = await response.json();
                 document.getElementById('stats-motorizados').textContent = data.length;
                 tbody.innerHTML = '';
@@ -361,7 +379,10 @@
                     `;
                     tbody.appendChild(tr);
                 });
-            } catch (error) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-red-500 p-4">Error.</td></tr>'; }
+            } catch (error) { 
+                console.error("Error cargando motorizados:", error);
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-red-500 p-4">Error de conexión.</td></tr>'; 
+            }
         }
 
         async function cargarTablaClientes() {
@@ -369,6 +390,9 @@
             tbody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i> Cargando...</td></tr>';
             try {
                 const response = await fetch(`${API_URL}/api/clientes`); 
+                
+                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
                 const clientes = await response.json();
                 document.getElementById('stats-clientes').textContent = clientes.length;
                 tbody.innerHTML = '';
@@ -385,7 +409,10 @@
                     `;
                     tbody.appendChild(tr);
                 });
-            } catch (error) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500 p-4">Error.</td></tr>'; }
+            } catch (error) { 
+                console.error("Error cargando clientes:", error);
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500 p-4">Error de conexión.</td></tr>'; 
+            }
         }
 
         // --- ASIGNACIÓN ---
@@ -399,53 +426,60 @@
             assignModal.classList.remove('hidden');
             assignList.innerHTML = 'Cargando...';
 
-            const res = await fetch(`${API_URL}/api/motorizados`);
-            const data = await res.json();
-            assignList.innerHTML = '';
-            const disponibles = data.filter(m => m.estado === 'disponible');
+            try {
+                const res = await fetch(`${API_URL}/api/motorizados`);
+                if (!res.ok) throw new Error("Error obteniendo motorizados");
+                
+                const data = await res.json();
+                assignList.innerHTML = '';
+                const disponibles = data.filter(m => m.estado === 'disponible');
 
-            if (disponibles.length === 0) {
-                assignList.innerHTML = '<div class="text-center py-4 text-sm text-red-500">No hay motorizados libres.</div>';
-                return;
-            }
+                if (disponibles.length === 0) {
+                    assignList.innerHTML = '<div class="text-center py-4 text-sm text-red-500">No hay motorizados libres.</div>';
+                    return;
+                }
 
-            disponibles.forEach(motoCruda => {
-                const moto = transformarMotorizado(motoCruda);
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-sm transition cursor-pointer group mb-2';
-                item.innerHTML = `
-                    <div class="flex items-center">
-                        <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-xs text-gray-600 mr-3">${moto.inicial}</div>
-                        <div><p class="font-bold text-sm text-gray-800">${moto.nombreCompleto}</p><span class="text-[10px] flex items-center ${moto.estado.clase.split(' ')[1]} font-bold"><i class="${moto.estado.icono} mr-1 text-[8px]"></i> ${moto.estado.texto}</span></div>
-                    </div>
-                    <button class="text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm opacity-100">ASIGNAR</button>
-                `;
-                item.addEventListener('click', async () => {
-                    try {
-                        const response = await fetch(`${API_URL}/api/servicios/asignar`, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({id_servicio: servicio.id, id_motorizado: moto.raw.id})
-                        });
-                        const data = await response.json();
-                        if(data.success) {
-                            assignModal.classList.add('hidden');
-                            showModal('Éxito', 'Motorizado asignado correctamente');
-                            const tarjeta = document.getElementById(`card-servicio-${servicio.id}`);
-                            if(tarjeta) tarjeta.remove();
-                            const contador = document.getElementById('stats-pendientes');
-                            let val = parseInt(contador.textContent || '0');
-                            if(val > 0) contador.textContent = val - 1;
-                            setTimeout(cargarServiciosPendientes, 1000); 
-                        } else { showModal('Error', 'No se pudo asignar'); }
-                    } catch(e) { console.error(e); }
+                disponibles.forEach(motoCruda => {
+                    const moto = transformarMotorizado(motoCruda);
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-sm transition cursor-pointer group mb-2';
+                    item.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-xs text-gray-600 mr-3">${moto.inicial}</div>
+                            <div><p class="font-bold text-sm text-gray-800">${moto.nombreCompleto}</p><span class="text-[10px] flex items-center ${moto.estado.clase.split(' ')[1]} font-bold"><i class="${moto.estado.icono} mr-1 text-[8px]"></i> ${moto.estado.texto}</span></div>
+                        </div>
+                        <button class="text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm opacity-100">ASIGNAR</button>
+                    `;
+                    item.addEventListener('click', async () => {
+                        try {
+                            const response = await fetch(`${API_URL}/api/servicios/asignar`, {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({id_servicio: servicio.id, id_motorizado: moto.raw.id})
+                            });
+                            const data = await response.json();
+                            if(data.success) {
+                                assignModal.classList.add('hidden');
+                                showModal('Éxito', 'Motorizado asignado correctamente');
+                                const tarjeta = document.getElementById(`card-servicio-${servicio.id}`);
+                                if(tarjeta) tarjeta.remove();
+                                const contador = document.getElementById('stats-pendientes');
+                                let val = parseInt(contador.textContent || '0');
+                                if(val > 0) contador.textContent = val - 1;
+                                setTimeout(cargarServiciosPendientes, 1000); 
+                            } else { showModal('Error', 'No se pudo asignar'); }
+                        } catch(e) { console.error(e); }
+                    });
+                    assignList.appendChild(item);
                 });
-                assignList.appendChild(item);
-            });
+            } catch(error) {
+                console.error("Error en modal asignación:", error);
+                assignList.innerHTML = '<div class="text-center py-4 text-sm text-red-500">Error cargando lista.</div>';
+            }
         }
         assignModalCloseButton.addEventListener('click', () => assignModal.classList.add('hidden'));
 
-        // --- CREAR MOTORIZADO (FIXED) ---
+        // --- CREAR MOTORIZADO ---
         const createDriverModal = document.getElementById('createDriverModal');
         const createDriverForm = document.getElementById('createDriverForm');
         const btnSaveDriver = document.getElementById('btnSaveDriver');
@@ -471,7 +505,7 @@
                 apellido: document.getElementById('newDriverApellido').value,
                 cedula: document.getElementById('newDriverCedula').value,
                 telefono: document.getElementById('newDriverTelefono').value,
-                fecha_nacimiento: document.getElementById('newDriverNacimiento').value, // YA INCLUIDO
+                fecha_nacimiento: document.getElementById('newDriverNacimiento').value,
                 correo: document.getElementById('newDriverEmail').value,
                 contrasena: document.getElementById('newDriverPassword').value,
                 rol: 'motorizado',
