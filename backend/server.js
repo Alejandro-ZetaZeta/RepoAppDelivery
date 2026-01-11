@@ -41,13 +41,40 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { user: u, pass: p } = req.body;
     try {
-        const q = /^\d+$/.test(u) ? "SELECT * FROM users WHERE cedula = ?" : "SELECT * FROM users WHERE username = ? OR email = ?";
-        const [rows] = await pool.execute(q, [u, u]);
+        let q = "";
+        let params = [];
+
+        // CORRECCIÓN CRÍTICA: Definir parámetros exactos según el tipo de login
+        if (/^\d+$/.test(u)) {
+            // Si son solo números -> Es Cédula (1 parámetro)
+            q = "SELECT * FROM users WHERE cedula = ?";
+            params = [u];
+        } else {
+            // Si tiene letras -> Es Username o Email (2 parámetros)
+            q = "SELECT * FROM users WHERE username = ? OR email = ?";
+            params = [u, u];
+        }
+
+        const [rows] = await pool.execute(q, params);
+        
         if (rows.length === 0) return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
+        
         const match = await bcrypt.compare(p, rows[0].password_hash);
-        if (match) res.json({ success: true, role: rows[0].role, name: `${rows[0].nombre} ${rows[0].apellido}`, userId: rows[0].id });
-        else res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
-    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+        
+        if (match) {
+            res.json({ 
+                success: true, 
+                role: rows[0].role, 
+                name: `${rows[0].nombre} ${rows[0].apellido}`, 
+                userId: rows[0].id 
+            });
+        } else {
+            res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
+        }
+    } catch (err) { 
+        console.error("Error Login:", err); // Log para ver el error real si ocurre
+        res.status(500).json({ success: false, message: err.message }); 
+    }
 });
 
 // --- ADMIN USUARIOS ---
@@ -103,7 +130,7 @@ app.get('/api/motorizados', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- AVISOS (NUEVO) ---
+// --- AVISOS ---
 app.post('/api/avisos', async (req, res) => {
     const { titulo, mensaje, fecha_programada, activo } = req.body;
     try {
@@ -115,11 +142,9 @@ app.post('/api/avisos', async (req, res) => {
 
 app.get('/api/avisos/activo', async (req, res) => {
     try {
-        // Asegúrate de que la tabla 'avisos' exista en tu DB
         const [rows] = await pool.query("SELECT * FROM avisos WHERE activo = TRUE AND fecha_programada <= NOW() ORDER BY fecha_programada DESC LIMIT 1");
         res.json(rows.length ? rows[0] : null);
     } catch (err) { 
-        // Si la tabla no existe, devolvemos null en vez de error 500 para no romper el frontend
         console.error("Error avisos:", err.message);
         res.json(null); 
     }
