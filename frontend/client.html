@@ -7,19 +7,15 @@
     <script>
         const userId = localStorage.getItem('userId');
         const userRole = localStorage.getItem('userRole');
-        if (!userId || userRole !== 'cliente') {
-            window.location.href = 'index.html';
-        }
+        if (!userId || userRole !== 'cliente') { window.location.href = 'index.html'; }
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center p-4" 
-      style="background: linear-gradient(to bottom right, #06b6d4, #2f4c8b);">
+<body class="min-h-screen flex items-center justify-center p-4" style="background: linear-gradient(to bottom right, #06b6d4, #2f4c8b);">
 
     <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg border-4 border-cyan-100 relative">
         <div class="flex justify-between items-center mb-6">
@@ -30,36 +26,23 @@
         </div>
         
         <div class="mt-6 border-t pt-6">
-            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                <i class="fas fa-map-marker-alt mr-2 text-cyan-500"></i> Nuevo Pedido
-            </h2>
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-map-marker-alt mr-2 text-cyan-500"></i> Nuevo Pedido</h2>
             <form id="solicitudForm">
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Punto de Recogida</label>
-                    <input type="text" id="punto_a" required class="w-full p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 bg-gray-50 font-medium">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Punto de Entrega</label>
-                    <input type="text" id="punto_b" required class="w-full p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 bg-gray-50 font-medium">
-                </div>
-                <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-black p-4 rounded-xl font-bold shadow-lg hover:shadow-xl transform transition hover:-translate-y-1">
-                    Enviar Solicitud
-                </button>
+                <div class="mb-4"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Punto de Recogida</label><input type="text" id="punto_a" required class="w-full p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 bg-gray-50 font-medium"></div>
+                <div class="mb-4"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Punto de Entrega</label><input type="text" id="punto_b" required class="w-full p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 bg-gray-50 font-medium"></div>
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl font-bold shadow-lg hover:shadow-xl transform transition hover:-translate-y-1">Enviar Solicitud</button>
             </form>
         </div>
         
         <div class="mt-8 border-t pt-6">
-            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                <i class="fas fa-history mr-2 text-blue-500"></i> Mis Pedidos
-            </h2>
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-history mr-2 text-blue-500"></i> Mis Pedidos</h2>
             <div id="pedidos-list" class="space-y-3 max-h-60 overflow-y-auto pr-2"></div>
         </div>
 
-        <button id="logoutButton" class="w-full mt-8 bg-red-50 text-red-600 p-3 rounded-xl font-bold hover:bg-red-100 transition border border-red-200">
-            Cerrar Sesión
-        </button>
+        <button id="logoutButton" class="w-full mt-8 bg-red-50 text-red-600 p-3 rounded-xl font-bold hover:bg-red-100 transition border border-red-200">Cerrar Sesión</button>
     </div>
 
+    <!-- MODAL AVISO -->
     <div id="avisoModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
         <div class="fixed inset-0 bg-gray-900 bg-opacity-70 backdrop-blur-sm transition-opacity"></div>
         <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-0 overflow-hidden transform scale-100 transition-all animate-bounce-in">
@@ -69,153 +52,98 @@
             </div>
             <div class="p-6 text-center">
                 <p class="text-gray-600 text-lg leading-relaxed font-medium" id="avisoContenido">...</p>
-                <button onclick="cerrarAviso()" class="mt-6 bg-gray-900 text-white px-6 py-2 rounded-full font-bold hover:bg-gray-800 transition shadow-lg w-full">
-                    Entendido
-                </button>
+                <button onclick="cerrarAviso()" class="mt-6 bg-gray-900 text-white px-6 py-2 rounded-full font-bold hover:bg-gray-800 transition shadow-lg w-full">Entendido</button>
             </div>
         </div>
     </div>
 
-    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
-        <div class="fixed inset-0 bg-gray-900 bg-opacity-60"></div>
-        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h3 id="modalTitle" class="font-bold text-lg mb-2">Notificación</h3>
-            <p id="modalMessage" class="text-gray-600 mb-4">Mensaje.</p>
-            <button id="modalCloseButton" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold">Ok</button>
-        </div>
-    </div>
+    <!-- MODAL GENERICO -->
+    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden"><div class="fixed inset-0 bg-gray-900 bg-opacity-60"></div><div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"><h3 id="modalTitle" class="font-bold text-lg mb-2"></h3><p id="modalMessage" class="text-gray-600 mb-4"></p><button id="modalCloseButton" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold">Ok</button></div></div>
 
     <script>
-        const API_URL = 'https://repoappdelivery.onrender.com';
+        const API_URL = 'https://tugless-eryn-forlornly.ngrok-free.dev';
 
-        // ---------------------------------------------------------
-        // LOGICA DE "RADAR" PARA EL AVISO AUTOMÁTICO
-        // ---------------------------------------------------------
-        let ultimoAvisoVisto = null;
+        async function fetchAPI(endpoint, options = {}) {
+            const headers = { 'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json', ...options.headers };
+            const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+            return await response.json();
+        }
 
-        function verificarAvisos() {
-            const avisoGuardado = localStorage.getItem('delivery_global_announcement');
-            
-            if (avisoGuardado) {
-                const aviso = JSON.parse(avisoGuardado);
-                
-                // Si el aviso está activo Y es diferente al último que cerramos...
-                if (aviso.activo && JSON.stringify(aviso) !== ultimoAvisoVisto) {
+        // --- RADAR DE AVISOS (CONECTADO A BD) ---
+        let ultimoAvisoId = null;
+
+        async function verificarAvisos() {
+            try {
+                const aviso = await fetchAPI('/api/avisos/activo');
+                if (aviso && aviso.id !== ultimoAvisoId) {
                     document.getElementById('avisoTitulo').textContent = aviso.titulo;
                     document.getElementById('avisoContenido').textContent = aviso.mensaje;
                     document.getElementById('avisoModal').classList.remove('hidden');
+                    ultimoAvisoId = aviso.id;
                 }
-            }
+            } catch (e) { console.log("Sin avisos nuevos"); }
         }
+        function cerrarAviso() { document.getElementById('avisoModal').classList.add('hidden'); }
+        setInterval(verificarAvisos, 10000); // Revisar cada 10 segundos
 
-        function cerrarAviso() {
-            document.getElementById('avisoModal').classList.add('hidden');
-            // Recordamos que ya vimos este aviso para que no salga cada 3 segundos
-            const avisoGuardado = localStorage.getItem('delivery_global_announcement');
-            if(avisoGuardado) ultimoAvisoVisto = avisoGuardado; 
-        }
-
-        // 1. Detectar cambios si estás en otra pestaña
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'delivery_global_announcement') {
-                ultimoAvisoVisto = null; 
-                verificarAvisos();
-            }
-        });
-
-        // 2. RADAR: Busca avisos nuevos cada 3 segundos
-        setInterval(verificarAvisos, 3000);
-        // ---------------------------------------------------------
-
-        // --- GESTIÓN MODAL GENERAL ---
-        const messageModal = document.getElementById('messageModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalCloseButton = document.getElementById('modalCloseButton');
-
+        // --- UI ---
         function showModal(title, message) {
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            messageModal.classList.remove('hidden');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('messageModal').classList.remove('hidden');
         }
-        modalCloseButton.addEventListener('click', () => messageModal.classList.add('hidden'));
-
-        // --- LÓGICA PRINCIPAL ---
-        const servicioStyles = {
-            'pendiente': { text: 'text-gray-500', bg: 'bg-gray-100', label: 'Pendiente' },
-            'recogiendo': { text: 'text-blue-600', bg: 'bg-blue-100', label: 'Recogiendo' },
-            'en camino': { text: 'text-yellow-600', bg: 'bg-yellow-100', label: 'En Camino' },
-            'entregado': { text: 'text-green-600', bg: 'bg-green-100', label: 'Entregado' }
-        };
+        document.getElementById('modalCloseButton').addEventListener('click', () => document.getElementById('messageModal').classList.add('hidden'));
 
         async function cargarMisPedidos(clienteId) {
-            const listContainer = document.getElementById('pedidos-list');
-            listContainer.innerHTML = '<p class="text-gray-400 text-center text-sm py-4">Actualizando...</p>';
-
+            const list = document.getElementById('pedidos-list');
+            list.innerHTML = '<p class="text-gray-400 text-center text-sm py-4">Actualizando...</p>';
             try {
-                const response = await fetch(`${API_URL}/api/servicios/cliente/${clienteId}`);
-                if (!response.ok) throw new Error('Error al cargar pedidos.');
-                const pedidos = await response.json();
-                listContainer.innerHTML = '';
+                const pedidos = await fetchAPI(`/api/servicios/cliente/${clienteId}`);
+                list.innerHTML = '';
+                if (pedidos.length === 0) { list.innerHTML = '<p class="text-gray-400 text-center text-sm py-4">Aún no has pedido nada.</p>'; return; }
+                
+                const styles = {
+                    'pendiente': { bg: 'bg-gray-100', text: 'text-gray-500' },
+                    'recogiendo': { bg: 'bg-blue-100', text: 'text-blue-600' },
+                    'en camino': { bg: 'bg-yellow-100', text: 'text-yellow-600' },
+                    'entregado': { bg: 'bg-green-100', text: 'text-green-600' }
+                };
 
-                if (pedidos.length === 0) {
-                    listContainer.innerHTML = '<p class="text-gray-400 text-center text-sm py-4">Aún no has pedido nada.</p>';
-                    return;
-                }
-
-                pedidos.forEach(pedido => {
-                    const styles = servicioStyles[pedido.estado_servicio] || servicioStyles['pendiente'];
+                pedidos.forEach(p => {
+                    const st = styles[p.estado_servicio] || styles['pendiente'];
                     const div = document.createElement('div');
                     div.className = 'p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-cyan-200 transition';
                     div.innerHTML = `
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-gray-800 text-sm">#${pedido.id}</span>
-                            <span class="px-2 py-1 rounded text-xs font-bold ${styles.text} ${styles.bg}">${styles.label}</span>
-                        </div>
-                        <div class="text-xs text-gray-600 space-y-1">
-                            <p class="truncate"><i class="fas fa-map-pin mr-1 text-red-400"></i> ${pedido.punto_a}</p>
-                            <p class="truncate"><i class="fas fa-flag-checkered mr-1 text-green-400"></i> ${pedido.punto_b}</p>
-                        </div>
+                        <div class="flex justify-between items-center mb-2"><span class="font-bold text-gray-800 text-sm">#${p.id}</span><span class="px-2 py-1 rounded text-xs font-bold ${st.text} ${st.bg}">${p.estado_servicio.toUpperCase()}</span></div>
+                        <div class="text-xs text-gray-600 space-y-1"><p class="truncate"><i class="fas fa-map-pin mr-1 text-red-400"></i> ${p.punto_a}</p><p class="truncate"><i class="fas fa-flag-checkered mr-1 text-green-400"></i> ${p.punto_b}</p></div>
                     `;
-                    listContainer.appendChild(div);
+                    list.appendChild(div);
                 });
-            } catch (error) {
-                listContainer.innerHTML = '<p class="text-red-400 text-center text-xs">Error de conexión</p>';
-            }
+            } catch (e) { list.innerHTML = '<p class="text-red-400 text-center text-xs">Error de conexión</p>'; }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const userName = localStorage.getItem('userName') || 'Cliente';
             const userId = localStorage.getItem('userId');
-            
-            document.getElementById('clientName').textContent = userName;
-            
+            document.getElementById('clientName').textContent = localStorage.getItem('userName') || 'Cliente';
             cargarMisPedidos(userId);
-            verificarAvisos();
+            verificarAvisos(); // Chequeo inicial
 
-            document.getElementById('logoutButton').addEventListener('click', () => {
-                localStorage.clear();
-                window.location.href = 'index.html';
-            });
+            document.getElementById('logoutButton').onclick = () => { localStorage.clear(); window.location.href = 'index.html'; };
 
             document.getElementById('solicitudForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const punto_a = document.getElementById('punto_a').value;
-                const punto_b = document.getElementById('punto_b').value;
-
                 try {
-                    const response = await fetch(`${API_URL}/api/servicios`, {
+                    const res = await fetchAPI('/api/servicios', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id_cliente: userId, punto_a, punto_b })
+                        body: JSON.stringify({
+                            id_cliente: userId,
+                            punto_a: document.getElementById('punto_a').value,
+                            punto_b: document.getElementById('punto_b').value
+                        })
                     });
-                    const data = await response.json();
-                    if (data.success) {
-                        showModal('¡Enviado!', 'Tu solicitud ha sido recibida.');
-                        e.target.reset();
-                        cargarMisPedidos(userId);
-                    } else { throw new Error(data.message); }
-                } catch (error) { showModal('Error', error.message); }
+                    if (res.success) { showModal('¡Enviado!', 'Tu solicitud ha sido recibida.'); e.target.reset(); cargarMisPedidos(userId); }
+                } catch (e) { showModal('Error', e.message); }
             });
         });
     </script>

@@ -4,143 +4,229 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App Delivery - Panel Motorizado</title>
-    <!-- SCRIPT DE SEGURIDAD: EL PORTERO -->
+    <!-- SCRIPT DE SEGURIDAD -->
     <script>
         const userId = localStorage.getItem('userId');
         const userRole = localStorage.getItem('userRole');
-        if (!userId || userRole !== 'motorizado') {
-            window.location.href = 'index.html';
-        }
+        if (!userId || userRole !== 'motorizado') { window.location.href = 'index.html'; }
     </script>
-    <!-- FIN SCRIPT SEGURIDAD -->
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <!-- Fuente Inter para mejor legibilidad -->
     <script src="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></script>
-</head>
-<body class="bg-gradient-to-br from-blue-900 via-green-700 to-teal-600 min-h-screen flex items-center justify-center p-4">
+    <!-- FontAwesome para iconos con aria-hidden -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <div class="w-full max-w-md">
-        <div class="bg-black p-8 rounded-lg shadow-lg">
-            <h1 class="text-2xl font-bold text-green-600 mb-4">Panel del Motorizado</h1>
-            <p class="text-blue-700 mb-6">Bienvenido, <span id="driverName" class="font-semibold">Motorizado</span>.</p>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Mejora del foco para accesibilidad */
+        *:focus-visible {
+            outline: 3px solid #3B82F6;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<!-- Fondo oscuro con gradiente sutil para reducir fatiga visual -->
+<body class="bg-gray-900 min-h-screen flex items-center justify-center p-4">
+
+    <main class="w-full max-w-md" role="main">
+        <!-- Tarjeta principal con alto contraste: Fondo gris oscuro (gray-800) -->
+        <div class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-700">
             
-            <div id="servicio-asignado-panel" class="mt-6 border-t pt-6">
-                <!-- El contenido se carga dinámicamente aquí -->
+            <header class="mb-6 border-b border-gray-700 pb-4">
+                <h1 class="text-2xl font-bold text-white mb-2 flex items-center">
+                    <i class="fas fa-motorcycle text-emerald-400 mr-3" aria-hidden="true"></i>
+                    Panel Motorizado
+                </h1>
+                <p class="text-gray-300">
+                    Hola, <span id="driverName" class="font-semibold text-white">Conductor</span>
+                </p>
+            </header>
+            
+            <!-- Región en vivo para lectores de pantalla -->
+            <div id="servicio-asignado-panel" class="mt-4" aria-live="polite">
+                <div class="animate-pulse flex space-x-4">
+                    <div class="flex-1 space-y-4 py-1">
+                        <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+                        <div class="space-y-2">
+                            <div class="h-4 bg-gray-700 rounded"></div>
+                            <div class="h-4 bg-gray-700 rounded w-5/6"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <button id="logoutButton" class="w-full mt-8 bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600">
+            <button id="logoutButton" class="w-full mt-8 bg-red-600 text-white p-4 rounded-xl font-bold hover:bg-red-700 transition focus:ring-4 focus:ring-red-900 flex items-center justify-center group" aria-label="Cerrar sesión">
+                <i class="fas fa-sign-out-alt mr-2 group-hover:-translate-x-1 transition-transform" aria-hidden="true"></i>
                 Cerrar Sesión
             </button>
         </div>
-    </div>
+    </main>
     
-    <!-- Modal para mensajes -->
-    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div id="messageModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity opacity-0"></div>
-        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6 transform opacity-0 scale-95 transition-all">
-            <h3 id="modalTitle" class="text-lg font-medium leading-6 text-gray-900">Notificación</h3>
-            <div class="mt-2"><p id="modalMessage" class="text-sm text-gray-500">Mensaje.</p></div>
-            <div class="mt-5 sm:mt-6">
-                <button id="modalCloseButton" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700">Entendido</button>
-            </div>
+    <!-- Modal Accesible -->
+    <div id="messageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+        <div class="relative bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm p-6 border border-gray-600">
+            <h3 id="modalTitle" class="text-xl font-bold text-white mb-2"></h3>
+            <p id="modalMessage" class="text-gray-300 mb-6 text-lg"></p>
+            <button id="modalCloseButton" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 focus:ring-4 focus:ring-blue-800 transition">
+                Entendido
+            </button>
         </div>
     </div>
 
-    <script src="js/modal.js"></script>
     <script>
-        const API_URL = 'https://repoappdelivery.onrender.com';
+        const API_URL = 'https://tugless-eryn-forlornly.ngrok-free.dev';
         let currentServiceId = null;
-        let motorizadoId = null;
+        let motorizadoId = localStorage.getItem('userId');
+
+        // Fetch Helper
+        async function fetchAPI(endpoint, options = {}) {
+            const headers = { 'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json', ...options.headers };
+            const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+            return await response.json();
+        }
+
+        // Modal Logic
+        function showModal(title, message) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            const modal = document.getElementById('messageModal');
+            modal.classList.remove('hidden');
+            // Trampa de foco: Mover el foco al botón de cerrar para accesibilidad
+            document.getElementById('modalCloseButton').focus();
+        }
+        
+        document.getElementById('modalCloseButton').onclick = () => {
+            document.getElementById('messageModal').classList.add('hidden');
+            // Devolver el foco al contenedor principal (opcional, mejora UX)
+        };
 
         async function cargarMiServicio() {
             const panel = document.getElementById('servicio-asignado-panel');
-            panel.innerHTML = '<p class="text-gray-500 text-center">Buscando servicio asignado...</p>';
-
+            
             try {
-                const response = await fetch(`${API_URL}/api/servicios/motorizado/${motorizadoId}`);
-                if (!response.ok) throw new Error('No se pudo conectar a la API.');
-
-                const servicio = await response.json();
-
+                const servicio = await fetchAPI(`/api/servicios/motorizado/${motorizadoId}`);
+                
                 if (!servicio) {
-                    panel.innerHTML = '<p class="text-red-500 text-center">No tienes servicios asignados en este momento.</p>';
+                    panel.innerHTML = `
+                        <div class="text-center py-10 bg-gray-700/50 rounded-xl border-2 border-dashed border-gray-600">
+                            <i class="fas fa-mug-hot text-4xl text-gray-500 mb-3" aria-hidden="true"></i>
+                            <p class="text-emerald-400 font-bold text-xl mb-2">¡Estás libre!</p>
+                            <p class="text-gray-400">Espera nuevas asignaciones.</p>
+                        </div>`;
                     return;
                 }
                 
                 currentServiceId = servicio.id;
                 
+                // Diseño de Tarjeta de Pedido Activo
+                // Usamos colores semánticos claros: Amarillo para origen, Verde para destino
                 panel.innerHTML = `
-                    <h2 class="text-xl font-semibold text-green-500 mb-4">Servicio Activo #${servicio.id}</h2>
-                    <p class="text-sm text-purple-700"><strong>Cliente:</strong> ${servicio.nombre} ${servicio.apellido}</p>
-                    <p class="text-sm text-purple-700 mt-1"><strong>Recoger en:</strong> ${servicio.punto_a}</p>
-                    <p class="text-sm text-purple-700 mt-1"><strong>Entregar en:</strong> ${servicio.punto_b}</p>
-                    
-                    <p class="text-md font-medium text-blue-500 mt-4 mb-2">Actualizar Estado:</p>
-                    <div class="space-y-2">
-                        <button data-estado="recogiendo" class="update-status-btn w-full px-4 py-2 text-sm font-medium rounded-lg ${servicio.estado_servicio === 'recogiendo' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}">
-                            Recogiendo
-                        </button>
-                        <button data-estado="en camino" class="update-status-btn w-full px-4 py-2 text-sm font-medium rounded-lg ${servicio.estado_servicio === 'en camino' ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'}">
-                            En Camino
-                        </button>
-                        <button data-estado="entregado" class="update-status-btn w-full px-4 py-2 text-sm font-medium rounded-lg ${servicio.estado_servicio === 'entregado' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'}">
-                            Entregado
-                        </button>
-                    </div>
-                `;
-                
-                document.querySelectorAll('.update-status-btn').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const nuevoEstado = button.getAttribute('data-estado');
-                        actualizarEstadoServicio(nuevoEstado);
-                    });
-                });
+                    <article class="bg-gray-700 p-5 rounded-xl border border-gray-600 shadow-lg">
+                        <div class="flex justify-between items-start mb-4 border-b border-gray-600 pb-4">
+                            <div>
+                                <span class="text-xs font-bold text-blue-300 uppercase tracking-wider">Pedido Actual</span>
+                                <h2 class="text-2xl font-bold text-white">#${servicio.id}</h2>
+                            </div>
+                            <div class="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-xs font-bold border border-blue-700">
+                                EN PROCESO
+                            </div>
+                        </div>
 
-            } catch (error) {
-                console.error('Error al cargar mi servicio:', error);
-                panel.innerHTML = `<p class="text-red-500 text-center">${error.message}</p>`;
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase font-bold mb-1">Cliente</p>
+                                <div class="flex items-center text-white">
+                                    <i class="fas fa-user-circle text-gray-400 mr-2" aria-hidden="true"></i>
+                                    <span class="text-lg">${servicio.nombre} ${servicio.apellido}</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-800 p-3 rounded-lg border-l-4 border-yellow-500">
+                                <p class="text-xs text-yellow-500 uppercase font-bold mb-1">Recoger en (A)</p>
+                                <p class="text-white font-medium text-lg leading-tight">${servicio.punto_a}</p>
+                            </div>
+
+                            <div class="bg-gray-800 p-3 rounded-lg border-l-4 border-emerald-500">
+                                <p class="text-xs text-emerald-500 uppercase font-bold mb-1">Entregar en (B)</p>
+                                <p class="text-white font-medium text-lg leading-tight">${servicio.punto_b}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <p class="text-sm font-bold text-gray-300 mb-3" id="status-label">Actualizar Estado:</p>
+                            <div class="grid grid-cols-1 gap-3" role="group" aria-labelledby="status-label">
+                                <!-- Botón Azul: Texto blanco es legible -->
+                                <button onclick="actualizar('recogiendo')" 
+                                    class="py-4 px-4 rounded-xl font-bold text-lg transition flex items-center justify-center
+                                    ${servicio.estado_servicio === 'recogiendo' 
+                                        ? 'bg-blue-600 text-white ring-2 ring-white ring-offset-2 ring-offset-gray-800 cursor-default' 
+                                        : 'bg-blue-900/50 text-blue-200 hover:bg-blue-800 border border-blue-700'}">
+                                    <i class="fas fa-box-open mr-2"></i> Recogiendo
+                                </button>
+
+                                <!-- Botón Amarillo: Texto NEGRO para cumplir AAA -->
+                                <button onclick="actualizar('en camino')" 
+                                    class="py-4 px-4 rounded-xl font-bold text-lg transition flex items-center justify-center
+                                    ${servicio.estado_servicio === 'en camino' 
+                                        ? 'bg-yellow-500 text-black ring-2 ring-white ring-offset-2 ring-offset-gray-800 cursor-default' 
+                                        : 'bg-yellow-900/40 text-yellow-200 hover:bg-yellow-800 border border-yellow-700'}">
+                                    <i class="fas fa-route mr-2"></i> En Camino
+                                </button>
+
+                                <!-- Botón Verde: Texto blanco funciona en verdes oscuros (600+) -->
+                                <button onclick="actualizar('entregado')" 
+                                    class="py-4 px-4 rounded-xl bg-emerald-600 text-white font-bold text-lg hover:bg-emerald-500 border border-emerald-500 shadow-lg hover:shadow-emerald-500/20 transition flex items-center justify-center">
+                                    <i class="fas fa-check-circle mr-2"></i> ¡ENTREGADO!
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            } catch (error) { 
+                console.error(error);
+                panel.innerHTML = `
+                    <div class="bg-red-900/20 border border-red-500 text-red-200 p-4 rounded-lg text-center">
+                        <p class="font-bold">Error de conexión</p>
+                        <button onclick="cargarMiServicio()" class="mt-2 text-sm underline hover:text-white">Reintentar</button>
+                    </div>`; 
             }
         }
 
-        async function actualizarEstadoServicio(nuevoEstado) {
-            if (!currentServiceId || !motorizadoId) return;
-
+        async function actualizar(nuevoEstado) {
             try {
-                const response = await fetch(`${API_URL}/api/servicios/actualizar`, {
+                // Feedback visual inmediato (Loading state)
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(b => b.disabled = true);
+
+                const res = await fetchAPI('/api/servicios/actualizar', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id_servicio: currentServiceId,
-                        id_motorizado: motorizadoId,
-                        nuevo_estado: nuevoEstado
+                    body: JSON.stringify({ 
+                        id_servicio: currentServiceId, 
+                        id_motorizado: motorizadoId, 
+                        nuevo_estado: nuevoEstado 
                     })
                 });
                 
-                const data = await response.json();
-                if (!data.success) throw new Error(data.message);
-
-                showModal('¡Éxito!', `Estado actualizado a "${nuevoEstado}".`);
-                cargarMiServicio(); 
-
-            } catch (error) {
-                console.error(error);
-                showModal('Error', `No se pudo actualizar el estado: ${error.message}`);
+                if (res.success) { 
+                    showModal('¡Estado Actualizado!', `El pedido ahora está: ${nuevoEstado.toUpperCase()}`); 
+                    cargarMiServicio(); 
+                }
+            } catch (e) { 
+                showModal('Error', e.message);
+                cargarMiServicio(); // Restaurar estado
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const userName = localStorage.getItem('userName') || 'Motorizado';
-            motorizadoId = localStorage.getItem('userId');
-
-            document.getElementById('driverName').textContent = userName;
-
-            document.getElementById('logoutButton').addEventListener('click', () => {
-                localStorage.removeItem('userName');
-                localStorage.removeItem('userId');
-                localStorage.removeItem('userRole'); // Limpiar rol
-                window.location.href = 'index.html';
-            });
-
+            document.getElementById('driverName').textContent = localStorage.getItem('userName') || 'Motorizado';
+            document.getElementById('logoutButton').onclick = () => { 
+                localStorage.clear(); 
+                window.location.href = 'index.html'; 
+            };
             cargarMiServicio();
         });
     </script>
