@@ -28,27 +28,33 @@
             background-color: rgba(255, 255, 255, 0.1);
             border-left: 4px solid #FBBF24;
         }
-        /* Sidebar móvil transition */
-        #sidebar { transition: transform 0.3s ease-in-out; }
-        .sidebar-open { transform: translateX(0) !important; }
-        .sidebar-closed { transform: translateX(-100%); }
-        @media (min-width: 768px) { .sidebar-closed { transform: translateX(0); } }
+        /* Sidebar Móvil Mejorado */
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(-100%); 
+        }
+        /* En escritorio (md), siempre visible */
+        @media (min-width: 768px) {
+            #sidebar { transform: translateX(0); }
+        }
+        /* Clase para abrir en móvil */
+        #sidebar.open { transform: translateX(0); }
     </style>
 </head>
 <body class="bg-gray-100 h-screen flex overflow-hidden">
 
-    <!-- Overlay para móvil -->
-    <div id="mobile-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+    <!-- Overlay oscuro para móvil -->
+    <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden transition-opacity"></div>
 
-    <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-purple-900 to-indigo-900 text-white flex flex-col shadow-2xl sidebar-closed md:relative md:translate-x-0">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-purple-900 to-indigo-900 text-white flex flex-col shadow-2xl h-full md:relative">
         <div class="p-6 flex items-center justify-between border-b border-purple-800">
             <div class="flex items-center justify-center w-full">
                 <i class="fas fa-rocket text-3xl mr-3 text-yellow-400"></i>
                 <h1 class="text-2xl font-bold tracking-wider">DELIVERY<span class="text-yellow-400">APP</span></h1>
             </div>
-            <button onclick="toggleSidebar()" class="md:hidden text-white hover:text-gray-300">
-                <i class="fas fa-times text-xl"></i>
+            <!-- Botón cerrar solo visible en móvil -->
+            <button onclick="toggleSidebar()" class="md:hidden text-white hover:text-gray-300 focus:outline-none p-2">
+                <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
 
@@ -82,7 +88,7 @@
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative w-full">
         <header class="bg-white shadow-sm h-16 flex items-center justify-between px-4 md:px-8 z-10">
             <div class="flex items-center text-gray-500">
-                <button onclick="toggleSidebar()" class="mr-4 md:hidden focus:outline-none text-gray-600 hover:text-purple-700">
+                <button onclick="toggleSidebar()" class="mr-4 md:hidden focus:outline-none text-gray-600 hover:text-purple-700 p-2 rounded">
                     <i class="fas fa-bars text-2xl"></i>
                 </button>
                 <h2 class="text-xl font-semibold text-gray-800" id="header-title">Dashboard de Control</h2>
@@ -194,8 +200,7 @@
                                     <label for="avisoActivo" class="ml-2 text-sm font-medium text-gray-700">Mostrar inmediatamente</label>
                                 </div>
                             </div>
-                            <!-- Selector de Fecha Oculto -->
-                            <div id="containerFechaAviso" class="hidden">
+                            <div id="containerFechaAviso" class="hidden animate-fade-in-down">
                                 <label class="block text-sm font-bold text-gray-700 mb-1">Programar para:</label>
                                 <input type="datetime-local" id="avisoFecha" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none">
                             </div>
@@ -260,13 +265,19 @@
     </div>
     
     <script>
-        // URL ACTUALIZADA
         const API_URL = 'https://tugless-eryn-forlornly.ngrok-free.dev'; 
 
-        // --- FETCH SEGURO (Saltear Ngrok Warning) ---
+        // --- FETCH SEGURO ---
         async function fetchAPI(endpoint, options = {}) {
             const headers = { 'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json', ...options.headers };
             const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+            
+            // Si el backend devuelve texto/html en vez de json (error 404/500 feo), esto lo captura
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error(`Respuesta no JSON del servidor (${response.status}). Posible error 404/500.`);
+            }
+
             if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
             return await response.json();
         }
@@ -275,8 +286,7 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('mobile-overlay');
-            sidebar.classList.toggle('sidebar-closed');
-            sidebar.classList.toggle('sidebar-open');
+            sidebar.classList.toggle('open');
             overlay.classList.toggle('hidden');
         }
 
@@ -289,7 +299,7 @@
 
         function switchTab(tabName) {
             if(window.innerWidth < 768) {
-                document.getElementById('sidebar').classList.add('sidebar-closed');
+                document.getElementById('sidebar').classList.remove('open');
                 document.getElementById('mobile-overlay').classList.add('hidden');
             }
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
@@ -323,7 +333,7 @@
                 titulo: document.getElementById('avisoTitulo').value,
                 mensaje: document.getElementById('avisoMensaje').value,
                 activo: true,
-                fecha_programada: fecha // null si es inmediato, fecha string si no
+                fecha_programada: fecha // null si es inmediato
             };
 
             try {
@@ -488,7 +498,7 @@
             } catch(e) { console.error(e); }
         }
 
-        // --- ASIGNACIÓN (Simplificada para el ejemplo) ---
+        // --- ASIGNACIÓN (Simplificada) ---
         const assignModal = document.getElementById('assignModal');
         const assignList = document.getElementById('assign-motorizado-list');
         window.asignar = async (serviceId, clientName) => {
